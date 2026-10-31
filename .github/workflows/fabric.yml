@@ -11,6 +11,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: Check what this runner supports (Docker, tc, netem, netns, BBR, jumbo MTU)
+        run: sh scripts/check_runner.sh
       - name: Install Containerlab
         run: bash -c "$(curl -sL https://get.containerlab.dev)" -- -v 0.59.0
       - name: Pull images
