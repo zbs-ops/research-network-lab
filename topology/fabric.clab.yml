@@ -18,21 +18,25 @@ topology:
       binds:
         - ../configs/daemons:/etc/frr/daemons
         - ../configs/spine1.conf:/etc/frr/frr.conf
+        - ../configs/vtysh.conf:/etc/frr/vtysh.conf
     spine2:
       kind: linux
       binds:
         - ../configs/daemons:/etc/frr/daemons
         - ../configs/spine2.conf:/etc/frr/frr.conf
+        - ../configs/vtysh.conf:/etc/frr/vtysh.conf
     leaf1:
       kind: linux
       binds:
         - ../configs/daemons:/etc/frr/daemons
         - ../configs/leaf1.conf:/etc/frr/frr.conf
+        - ../configs/vtysh.conf:/etc/frr/vtysh.conf
     leaf2:
       kind: linux
       binds:
         - ../configs/daemons:/etc/frr/daemons
         - ../configs/leaf2.conf:/etc/frr/frr.conf
+        - ../configs/vtysh.conf:/etc/frr/vtysh.conf
     host1:
       kind: linux
       image: alpine:3.20
