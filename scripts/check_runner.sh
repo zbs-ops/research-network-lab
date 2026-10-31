@@ -12,5 +12,5 @@ check "root via sudo"     sudo -n true
 check "netem qdisc"       sh -c 'sudo ip link add gbbchk type dummy && sudo ip link set gbbchk up && sudo tc qdisc add dev gbbchk root netem delay 50ms loss 1% && sudo tc qdisc show dev gbbchk; r=$?; sudo ip link del gbbchk; exit $r'
 check "network namespaces (NET_ADMIN)" sh -c 'sudo ip netns add gbbchk && sudo ip netns exec gbbchk ip link set lo up && sudo ip netns exec gbbchk ip -br link; r=$?; sudo ip netns del gbbchk; exit $r'
 check "TCP BBR available" sh -c 'sudo modprobe tcp_bbr 2>/dev/null; cat /proc/sys/net/ipv4/tcp_available_congestion_control | grep -w bbr'
-check "jumbo MTU 9000 on veth" sh -c 'sudo ip link add gbbva type veth peer name gbbvb && sudo ip link set gbbva mtu 9000 && ip -br link show gbbva; r=$?; sudo ip link del gbbva; exit $r'
+check "jumbo MTU 9000 on veth" sh -c 'sudo ip link add gbbva type veth peer name gbbvb && sudo ip link set gbbva mtu 9000 && ip link show gbbva | grep -o "mtu 9000"; r=$?; sudo ip link del gbbva; exit $r'
 exit $fail

@@ -21,6 +21,14 @@ jobs:
           docker pull alpine:3.20
       - name: Deploy the fabric
         run: sudo containerlab deploy -t topology/fabric.clab.yml
+      - name: Which config lines does FRR reject?
+        run: |
+          for n in spine1 leaf1; do
+            echo "=== $n: dry-run of frr.conf"
+            sudo docker exec clab-fabric-$n vtysh --dryrun -f /etc/frr/frr.conf 2>&1 || true
+            echo "=== $n: frr log lines mentioning errors"
+            sudo docker logs clab-fabric-$n 2>&1 | grep -iE "error|unknown|fail" | head -20 || true
+          done
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
