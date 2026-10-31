@@ -1,0 +1,49 @@
+name: partb
+
+# Part B: TCP over an emulated long fat network. One job per round-trip time, run in parallel.
+on:
+  workflow_dispatch:
+  push:
+    paths: ["partb/**", ".github/workflows/partb.yml"]
+
+jobs:
+  measure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        rtt: [10, 120, 250]   # ms: Tokyo-Kobe class, Japan-US West, Japan-Europe
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the runner
+        run: sh scripts/check_runner.sh
+      - name: Install iperf3
+        run: sudo apt-get update -q && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q iperf3 ethtool && iperf3 --version
+      - name: Load BBR
+        run: sudo modprobe tcp_bbr && cat /proc/sys/net/ipv4/tcp_available_congestion_control
+      - name: Measure
+        run: sudo python3 partb/lfn.py --rtt ${{ matrix.rtt }} --out results/partb
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: partb-rtt${{ matrix.rtt }}
+          path: results/partb
+
+  plot:
+    needs: measure
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: results/partb-artifacts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install matplotlib==3.9.2
+      - run: python partb/plot.py results/partb-artifacts results/partb-plots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: partb-plots
+          path: results/partb-plots
