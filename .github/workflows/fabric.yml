@@ -25,6 +25,14 @@ jobs:
       - run: pip install pytest==8.3.3
       - name: Check routing and reachability
         run: sudo -E env "PATH=$PATH" python -m pytest -v tests/test_fabric.py
+      - name: Break it on purpose and measure recovery
+        run: sudo -E env "PATH=$PATH" python -m pytest -v -s tests/test_failures.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: failures
+          path: results/failures.json
+          if-no-files-found: ignore
       - name: Show BGP and routes (for the log)
         if: always()
         run: |
