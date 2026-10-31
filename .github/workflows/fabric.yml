@@ -1,0 +1,33 @@
+name: fabric
+
+# Builds the leaf-spine lab on a fresh Linux runner and checks it, on every push.
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  fabric:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Containerlab
+        run: bash -c "$(curl -sL https://get.containerlab.dev)" -- -v 0.59.0
+      - name: Pull images
+        run: |
+          docker pull quay.io/frrouting/frr:10.1.1
+          docker pull alpine:3.20
+      - name: Deploy the fabric
+        run: sudo containerlab deploy -t topology/fabric.clab.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest==8.3.3
+      - name: Check routing and reachability
+        run: sudo -E env "PATH=$PATH" python -m pytest -v tests/test_fabric.py
+      - name: Show BGP and routes (for the log)
+        if: always()
+        run: |
+          for n in spine1 spine2 leaf1 leaf2; do
+            echo "=== $n"; sudo docker exec clab-fabric-$n vtysh -c 'show bgp ipv4 unicast summary' -c 'show ip route bgp' || true
+          done
