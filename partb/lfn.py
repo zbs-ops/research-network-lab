@@ -25,7 +25,7 @@ SND_IP, RCV_IP = "10.9.0.1", "10.9.0.2"
 RATE = "1gbit"
 FIELDS = [
     "rtt_ms", "loss_pct", "cc", "mtu", "streams", "buffers", "rep",
-    "measured_rtt_ms", "throughput_mbps", "retransmits", "duration_s", "raw_file",
+    "measured_rtt_ms", "throughput_mbps", "retransmits", "netem_dropped", "duration_s", "raw_file",
 ]  # fmt: skip
 
 
@@ -80,7 +80,11 @@ def shape(rtt_ms: float, loss_pct: float, mtu: int) -> dict:
 
 
 def measured_rtt() -> float:
-    """Average ping RTT across the emulated path, so the delay is checked, not assumed."""
+    """Average ping RTT across the emulated path, so the delay is checked, not assumed.
+
+    One ping first, not counted: the very first packet waits for ARP, which itself crosses the
+    delayed path, and run 41176590070 showed it inflating the average by ~20% (144 ms at 120)."""
+    ns(SND, "ping", "-c", "1", "-W", "5", RCV_IP, check=False)
     out = ns(SND, "ping", "-c", "5", "-i", "0.2", "-q", RCV_IP)
     m = re.search(r"= [\d.]+/([\d.]+)/", out)
     assert m, out
@@ -112,6 +116,14 @@ def iperf(cc: str, streams: int, seconds: int) -> dict:
     finally:
         server.wait(timeout=seconds + 30)
     return json.loads(out)
+
+
+def netem_drops() -> int:
+    """Packets the sender-side netem queue itself dropped (queue full), as opposed to the
+    random loss we asked for. If this grows during a test, the emulator was the bottleneck."""
+    out = ns(SND, "tc", "-s", "qdisc", "show", "dev", "veth-a")
+    m = re.search(r"dropped (\d+)", out)
+    return int(m.group(1)) if m else -1
 
 
 def summarize(result: dict) -> tuple[float, int, float]:
@@ -150,13 +162,15 @@ def main() -> None:
         rtt = measured_rtt()
         for rep in range(1, args.reps + 1):
             name = f"rtt{num(args.rtt)}_loss{num(loss)}_{cc}_mtu{mtu}_p{streams}_{buf}_r{rep}.json"
+            drops_before = netem_drops()
             result = iperf(cc, streams, args.seconds)
-            result["lab"] = {"applied_qdisc": applied, "measured_rtt_ms": rtt}
+            netem_dropped = netem_drops() - drops_before
+            result["lab"] = {"applied_qdisc": applied, "measured_rtt_ms": rtt, "netem_dropped": netem_dropped}
             (raw / name).write_text(json.dumps(result))
             mbps, retx, dur = summarize(result)
-            row = dict(zip(FIELDS, [num(args.rtt), num(loss), cc, mtu, streams, buf, rep, rtt, mbps, retx, dur, name]))
+            row = dict(zip(FIELDS, [num(args.rtt), num(loss), cc, mtu, streams, buf, rep, rtt, mbps, retx, netem_dropped, dur, name]))
             rows.append(row)
-            print(f"{name}: {mbps} Mbit/s, {retx} retransmits, ping RTT {rtt} ms", flush=True)
+            print(f"{name}: {mbps} Mbit/s, {retx} retransmits, netem dropped {netem_dropped}, ping RTT {rtt} ms", flush=True)
 
     with open(args.out / f"results_rtt{int(args.rtt)}.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=FIELDS)
