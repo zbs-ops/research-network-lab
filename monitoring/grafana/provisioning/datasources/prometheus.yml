@@ -6,3 +6,7 @@ datasources:
     access: proxy
     url: http://localhost:9090
     isDefault: true
+    jsonData:
+      # Matches prometheus.yml's 2 s scrape. Without it Grafana assumes 15 s steps, and a
+      # 5-second burst or a 6-second alert gets averaged away on the dashboard.
+      timeInterval: 2s
