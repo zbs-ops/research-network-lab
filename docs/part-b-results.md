@@ -70,7 +70,7 @@ This started as an unexplained result, and it's now explained, with each step ba
 
 **So the chain is:** BBR's startup overshoot with 4 flows puts a huge amount of data in flight → total TCP memory hits the pressure threshold → under pressure the receiver stops growing its window, and in some runs shrinks it to under 1 MB → the flows are window-limited for the rest of the test. MTU 1500 is far more exposed than MTU 9000, consistent with each 1,500-byte packet carrying proportionally more buffer overhead. That last part wasn't measured separately.
 
-**How much of this is the lab?** Here the sender, the receiver and netem's queue all live in one kernel, so they share one `tcp_mem` budget, sized from this runner's 7 GB of RAM. Two real data-transfer nodes each have their own budget, so they would hit pressure later. The mechanism is real, though. A transfer host that runs many parallel long-RTT flows with 256 MB socket buffers is spending exactly the memory `tcp_mem` limits. Raising socket buffers without checking `tcp_mem` and RAM can trade one ceiling for another.
+**How much of this is the lab?** Here the sender, the receiver and netem's queue all live in one kernel, so they share one `tcp_mem` budget, sized from this runner's 7,932 MB of RAM (`free -m` in run 41390596751). Two real data-transfer nodes each have their own budget, so they would hit pressure later. The mechanism is real, though. A transfer host that runs many parallel long-RTT flows with 256 MB socket buffers is spending exactly the memory `tcp_mem` limits. Raising socket buffers without checking `tcp_mem` and RAM can trade one ceiling for another.
 
 ## Open questions (not explained yet)
 
