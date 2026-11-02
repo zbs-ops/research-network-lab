@@ -1,0 +1,74 @@
+[
+  {
+    "case": "bbr_mtu1500_p4_r1",
+    "mbps": 795.8,
+    "retransmits": 0,
+    "peak_cpu_pct": 33.7
+  },
+  {
+    "case": "bbr_mtu1500_p4_r2",
+    "mbps": 797.4,
+    "retransmits": 1,
+    "peak_cpu_pct": 41.8
+  },
+  {
+    "case": "bbr_mtu1500_p4_r3",
+    "mbps": 789.4,
+    "retransmits": 0,
+    "peak_cpu_pct": 28.9
+  },
+  {
+    "case": "bbr_mtu1500_p4_r4",
+    "mbps": 802.3,
+    "retransmits": 0,
+    "peak_cpu_pct": 37.8
+  },
+  {
+    "case": "bbr_mtu1500_p4_r5",
+    "mbps": 801.2,
+    "retransmits": 0,
+    "peak_cpu_pct": 30.9
+  },
+  {
+    "case": "bbr_mtu1500_p4_r6",
+    "mbps": 803.8,
+    "retransmits": 0,
+    "peak_cpu_pct": 30.5
+  },
+  {
+    "case": "bbr_mtu1500_p4_r7",
+    "mbps": 805.3,
+    "retransmits": 0,
+    "peak_cpu_pct": 36.0
+  },
+  {
+    "case": "bbr_mtu1500_p4_r8",
+    "mbps": 790.9,
+    "retransmits": 1,
+    "peak_cpu_pct": 33.0
+  },
+  {
+    "case": "bbr_mtu1500_p4_r9",
+    "mbps": 790.0,
+    "retransmits": 0,
+    "peak_cpu_pct": 36.7
+  },
+  {
+    "case": "bbr_mtu1500_p4_r10",
+    "mbps": 787.9,
+    "retransmits": 1,
+    "peak_cpu_pct": 34.7
+  },
+  {
+    "case": "bbr_mtu1500_p4_r11",
+    "mbps": 792.4,
+    "retransmits": 0,
+    "peak_cpu_pct": 32.7
+  },
+  {
+    "case": "bbr_mtu1500_p4_r12",
+    "mbps": 792.8,
+    "retransmits": 0,
+    "peak_cpu_pct": 29.7
+  }
+]
