@@ -7,7 +7,7 @@ import sys
 
 from playwright.sync_api import sync_playwright
 
-URL = "http://localhost:3000/d/fabric/leaf-spine-fabric?orgId=1&from=now-10m&to=now&kiosk"
+URL = "http://localhost:3000/d/fabric/leaf-spine-fabric?orgId=1&from=now-3m&to=now&kiosk"
 
 with sync_playwright() as p:
     browser = p.chromium.launch()

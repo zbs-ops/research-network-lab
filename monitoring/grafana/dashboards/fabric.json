@@ -13,24 +13,40 @@
       "datasource": {"type": "prometheus", "uid": "prom"},
       "fieldConfig": {"defaults": {"unit": "bps"}, "overrides": []},
       "targets": [
-        {"refId": "A", "expr": "rate(fabric_interface_tx_bytes_total[10s]) * 8", "legendFormat": "{{node}} {{iface}}"}
+        {"refId": "A", "range": true, "instant": false, "expr": "rate(fabric_interface_tx_bytes_total[10s]) * 8", "legendFormat": "{{node}} {{iface}}"}
       ]
     },
     {
       "id": 2,
       "type": "state-timeline",
-      "title": "Fabric links up",
+      "title": "Fabric links",
       "gridPos": {"x": 0, "y": 9, "w": 12, "h": 8},
       "datasource": {"type": "prometheus", "uid": "prom"},
-      "targets": [{"refId": "A", "expr": "fabric_interface_up", "legendFormat": "{{node}} {{iface}}"}]
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]},
+          "mappings": [{"type": "value", "options": {"0": {"text": "down", "color": "red"}, "1": {"text": "up", "color": "green"}}}]
+        },
+        "overrides": []
+      },
+      "targets": [{"refId": "A", "range": true, "instant": false, "expr": "fabric_interface_up", "legendFormat": "{{node}} {{iface}}"}]
     },
     {
       "id": 3,
       "type": "state-timeline",
-      "title": "BGP sessions established",
+      "title": "BGP sessions",
       "gridPos": {"x": 12, "y": 9, "w": 12, "h": 8},
       "datasource": {"type": "prometheus", "uid": "prom"},
-      "targets": [{"refId": "A", "expr": "fabric_bgp_peer_established", "legendFormat": "{{node}} via {{peer}}"}]
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]},
+          "mappings": [{"type": "value", "options": {"0": {"text": "down", "color": "red"}, "1": {"text": "established", "color": "green"}}}]
+        },
+        "overrides": []
+      },
+      "targets": [{"refId": "A", "range": true, "instant": false, "expr": "fabric_bgp_peer_established", "legendFormat": "{{node}} via {{peer}}"}]
     },
     {
       "id": 4,
@@ -39,16 +55,17 @@
       "gridPos": {"x": 0, "y": 17, "w": 12, "h": 8},
       "datasource": {"type": "prometheus", "uid": "prom"},
       "fieldConfig": {"defaults": {"min": 0, "max": 2, "decimals": 0}, "overrides": []},
-      "targets": [{"refId": "A", "expr": "fabric_route_nexthops", "legendFormat": "{{node}} -> {{prefix}}"}]
+      "targets": [{"refId": "A", "range": true, "instant": false, "expr": "fabric_route_nexthops", "legendFormat": "{{node}} -> {{prefix}}"}]
     },
     {
       "id": 5,
-      "type": "state-timeline",
+      "type": "timeseries",
       "title": "Firing alerts (Prometheus)",
       "gridPos": {"x": 12, "y": 17, "w": 12, "h": 8},
       "datasource": {"type": "prometheus", "uid": "prom"},
+      "fieldConfig": {"defaults": {"min": 0, "decimals": 0, "custom": {"drawStyle": "bars", "fillOpacity": 80}}, "overrides": []},
       "targets": [
-        {"refId": "A", "expr": "ALERTS{alertstate=\"firing\"}", "legendFormat": "{{alertname}} {{node}} {{iface}}{{peer}}"}
+        {"refId": "A", "range": true, "instant": false, "expr": "count by (alertname) (ALERTS{alertstate=\"firing\"})", "legendFormat": "{{alertname}}"}
       ]
     }
   ]
