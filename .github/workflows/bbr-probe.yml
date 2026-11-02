@@ -19,7 +19,7 @@ jobs:
       - name: Load BBR
         run: sudo modprobe tcp_bbr
       - name: Probe
-        run: cd partb && sudo python3 bbr_probe.py --out ../results/bbr-probe --reps 10
+        run: cd partb && sudo python3 bbr_probe.py --out ../results/bbr-probe --reps 12 --only bbr:1500:4
       - uses: actions/upload-artifact@v4
         if: always()
         with:

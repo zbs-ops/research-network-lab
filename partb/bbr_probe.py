@@ -53,13 +53,38 @@ def qdisc_stats(ns_name: str, dev: str) -> dict:
     return stat
 
 
+# Kernel counters that say whether TCP ran short of memory or had to throw data away.
+TCPEXT = [
+    "TCPMemoryPressures", "TCPMemoryPressuresChrono", "PruneCalled", "RcvPruned", "OfoPruned",
+    "TCPRcvQDrop", "TCPOFOQueue", "TCPOFODrop", "TCPRcvCollapsed", "TCPWqueueTooBig", "TCPZeroWindowDrop",
+    "TCPToZeroWindowAdv", "TCPFromZeroWindowAdv", "TCPWantZeroWindowAdv",
+]  # fmt: skip
+
+
+def tcpext(ns_name: str) -> dict:
+    """The TcpExt counters above, as this namespace's kernel sees them."""
+    text = lfn.ns(ns_name, "cat", "/proc/net/netstat").splitlines()
+    for head, vals in zip(text[0::2], text[1::2]):
+        if head.startswith("TcpExt:"):
+            pairs = dict(zip(head.split()[1:], (int(v) for v in vals.split()[1:])))
+            return {k: pairs.get(k) for k in TCPEXT}
+    return {}
+
+
+def tcp_mem_pages() -> dict:
+    """Global TCP memory in use (pages), and the limits where pressure starts and where it caps."""
+    used = re.search(r"TCP:.*\bmem (\d+)", Path("/proc/net/sockstat").read_text())
+    low, pressure, high = Path("/proc/sys/net/ipv4/tcp_mem").read_text().split()
+    return {"used": int(used.group(1)) if used else None, "low": int(low), "pressure": int(pressure), "high": int(high)}
+
+
 def flows() -> list[dict]:
     """Per-connection TCP state for the data flows to the receiver (port 5201)."""
-    out = lfn.ns(lfn.SND, "ss", "-tin", "dst", lfn.RCV_IP, "dport", "=", "5201")
+    out = lfn.ns(lfn.SND, "ss", "-tinm", "dst", lfn.RCV_IP, "dport", "=", "5201")
     lines = out.splitlines()[1:]
     result = []
     for head, info in zip(lines[0::2], lines[1::2]):
-        f = {"conn": " ".join(head.split()[3:5])}
+        f = {"conn": " ".join(head.split()[3:5]), "raw": " ".join(info.split())}
         for key, pattern in (
             ("cwnd", r"\bcwnd:(\d+)"),
             ("rtt_ms", r"\brtt:([\d.]+)"),
@@ -90,6 +115,9 @@ def sample(stop: threading.Event, out: list[dict], t0: float) -> None:
                 "sender_qdisc": qdisc_stats(lfn.SND, "veth-a"),
                 "receiver_qdisc": qdisc_stats(lfn.RCV, "veth-b"),
                 "flows": flows(),
+                "tcp_mem_pages": tcp_mem_pages(),
+                "tcpext_sender": tcpext(lfn.SND),
+                "tcpext_receiver": tcpext(lfn.RCV),
             }
         )
 
@@ -98,13 +126,18 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--reps", type=int, default=10)
+    ap.add_argument("--only", default=None, help="run one case, e.g. bbr:1500:4")
     ap.add_argument("--seconds", type=int, default=15)
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     lfn.setup()
     lfn.buffers("tuned")
     summary = []
-    for cc, mtu, streams in CASES:
+    cases = CASES
+    if args.only:
+        cc_, mtu_, streams_ = args.only.split(":")
+        cases = [(cc_, int(mtu_), int(streams_))]
+    for cc, mtu, streams in cases:
         applied = lfn.shape(250, 0, mtu)
         rtt = lfn.measured_rtt()
         for rep in range(1, args.reps + 1):
