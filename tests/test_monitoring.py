@@ -63,7 +63,7 @@ def test_the_exporter_sees_the_whole_fabric():
 
 
 def test_traffic_shows_up_as_throughput():
-    # About 1,000 pings of 1,400 bytes per second for 5 s, host1 -> host2, across the spines.
+    # 5,000 pings of 1,400 bytes, sent as fast as the 1 ms interval allows, host1 -> host2.
     sh("host1", "ping", "-q", "-c", "5000", "-i", "0.001", "-s", "1400", HOSTS["host2"], check=False)
     time.sleep(4)  # two more scrapes after the traffic ends, so the 10 s rate window holds it
     peak = max(float(r["value"][1]) for r in query('max_over_time((rate(fabric_interface_tx_bytes_total{node=~"spine.*"}[10s]) * 8)[30s:2s])'))
