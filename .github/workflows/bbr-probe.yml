@@ -1,0 +1,27 @@
+name: bbr-probe
+
+# Instrumented re-run of the 4-stream BBR stalls at 250 ms (see docs/part-b-results.md, open question 1).
+on:
+  workflow_dispatch:
+  push:
+    paths: ["partb/bbr_probe.py", ".github/workflows/bbr-probe.yml"]
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the runner
+        run: sh scripts/check_runner.sh && nproc && lscpu | grep -E "Model name|^CPU\(s\)"
+      - name: Install iperf3
+        run: sudo apt-get update -q && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q iperf3 ethtool && iperf3 --version
+      - name: Load BBR
+        run: sudo modprobe tcp_bbr
+      - name: Probe
+        run: cd partb && sudo python3 bbr_probe.py --out ../results/bbr-probe --reps 10
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bbr-probe
+          path: results/bbr-probe
