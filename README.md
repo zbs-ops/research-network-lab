@@ -54,7 +54,7 @@ cd partb && sudo python3 lfn.py --rtt 250 --out ../results/partb-local
 
 ## How this was built
 
-I set the goal (a lab that shows the day-to-day work of a research-network engineer), the scope, and the rules: every number comes from a CI run that's linked next to it, check the environment before trusting it, and write down what broke. The building was done by Friday, an AI agent I run. Friday wrote the topology, the router configs, the tests, the harnesses and the write-ups, ran every experiment, and posted each phase's real output for me to review before the next phase started.
+I set the goal (a lab that shows the day-to-day work of a research-network engineer), the scope, and the rules: every number comes from a CI run that's linked next to it, check the environment before trusting it, and write down what broke. The building was done by Friday, an AI agent I run. Friday wrote the topology, the router configs, the tests, the measurement scripts and the write-ups, ran every experiment, and posted each phase's real output for me to review before the next phase started.
 
 **Where it runs.** The agent's machine has no Docker and no `tc`, and neither does my laptop. So every push builds the lab on a fresh GitHub Actions runner, which has root, Docker and the kernel's netem module. That's why "run it in CI" is the reproduction path, and why a fresh run can always check the results.
 
