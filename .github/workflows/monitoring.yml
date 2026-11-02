@@ -1,0 +1,61 @@
+name: monitoring
+
+# Part C: Prometheus + Grafana over the fabric. Breaks things on purpose and checks which
+# alerts fire, how fast, and that they clear.
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  monitoring:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Containerlab
+        run: bash -c "$(curl -sL https://get.containerlab.dev)" -- -v 0.59.0
+      - name: Pull images
+        run: |
+          docker pull quay.io/frrouting/frr:10.1.1
+          docker pull alpine:3.20
+          docker pull prom/prometheus:v2.55.1
+          docker pull grafana/grafana:11.3.0
+      - name: Deploy the fabric
+        run: sudo containerlab deploy -t topology/fabric.clab.yml
+      - name: Start the exporter
+        run: |
+          sudo nohup python3 monitoring/fabric_exporter.py > exporter.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:9101/metrics > /dev/null && break; sleep 1; done
+          curl -s localhost:9101/metrics | grep -v '^#'
+      - name: Start Prometheus and Grafana
+        run: |
+          docker run -d --name prometheus --network host \
+            -v "$PWD/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
+            -v "$PWD/monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro" \
+            prom/prometheus:v2.55.1
+          docker run -d --name grafana --network host \
+            -e GF_AUTH_ANONYMOUS_ENABLED=true -e GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer -e GF_AUTH_DISABLE_LOGIN_FORM=true \
+            -v "$PWD/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro" \
+            -v "$PWD/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro" \
+            grafana/grafana:11.3.0
+          for i in $(seq 1 60); do curl -sf localhost:9090/-/ready > /dev/null && curl -sf localhost:3000/api/health > /dev/null && break; sleep 2; done
+          curl -s localhost:9090/api/v1/rules | python3 -c "import json,sys; print([r['name'] for g in json.load(sys.stdin)['data']['groups'] for r in g['rules']])"
+          curl -s localhost:3000/api/dashboards/uid/fabric | python3 -c "import json,sys; d=json.load(sys.stdin)['dashboard']; print(d['title'], len(d['panels']), 'panels')"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest==8.3.3 playwright==1.48.0 && python -m playwright install --with-deps chromium
+      - name: Break things and check the alerts
+        run: sudo -E env "PATH=$PATH" python -m pytest -v -s tests/test_monitoring.py
+      - name: Screenshot the dashboard
+        if: always()
+        run: mkdir -p results && python monitoring/screenshot.py results/grafana-fabric.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: monitoring
+          path: |
+            results/monitoring.json
+            results/grafana-fabric.png
+            exporter.log
+          if-no-files-found: ignore
