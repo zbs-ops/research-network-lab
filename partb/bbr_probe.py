@@ -127,11 +127,21 @@ def main() -> None:
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--reps", type=int, default=10)
     ap.add_argument("--only", default=None, help="run one case, e.g. bbr:1500:4")
+    ap.add_argument(
+        "--tcp-mem-scale",
+        type=float,
+        default=1.0,
+        help="multiply the host's tcp_mem limits, to test whether TCP memory pressure causes the stalls",
+    )
     ap.add_argument("--seconds", type=int, default=15)
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     lfn.setup()
     lfn.buffers("tuned")
+    if args.tcp_mem_scale != 1.0:
+        limits = [int(int(v) * args.tcp_mem_scale) for v in Path("/proc/sys/net/ipv4/tcp_mem").read_text().split()]
+        lfn.run("sysctl", "-qw", "net.ipv4.tcp_mem=" + " ".join(map(str, limits)))
+    print("tcp_mem", Path("/proc/sys/net/ipv4/tcp_mem").read_text().strip(), flush=True)
     summary = []
     cases = CASES
     if args.only:

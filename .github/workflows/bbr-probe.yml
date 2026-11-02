@@ -1,6 +1,8 @@
 name: bbr-probe
 
 # Instrumented re-run of the 4-stream BBR stalls at 250 ms (see docs/part-b-results.md, open question 1).
+# Two arms side by side: the runner's normal tcp_mem limits, and 4x those limits. If kernel TCP
+# memory pressure causes the stalls, they should disappear in the second arm.
 on:
   workflow_dispatch:
   push:
@@ -10,18 +12,22 @@ jobs:
   probe:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        tcp_mem_scale: ["1", "4"]
     steps:
       - uses: actions/checkout@v4
       - name: Check the runner
-        run: sh scripts/check_runner.sh && nproc && lscpu | grep -E "Model name|^CPU\(s\)"
+        run: sh scripts/check_runner.sh && nproc && lscpu | grep -E "Model name|^CPU\(s\)" && free -m
       - name: Install iperf3
         run: sudo apt-get update -q && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q iperf3 ethtool && iperf3 --version
       - name: Load BBR
         run: sudo modprobe tcp_bbr
       - name: Probe
-        run: cd partb && sudo python3 bbr_probe.py --out ../results/bbr-probe --reps 12 --only bbr:1500:4
+        run: cd partb && sudo python3 bbr_probe.py --out ../results/bbr-probe --reps 12 --only bbr:1500:4 --tcp-mem-scale ${{ matrix.tcp_mem_scale }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: bbr-probe
+          name: bbr-probe-tcpmem-x${{ matrix.tcp_mem_scale }}
           path: results/bbr-probe
