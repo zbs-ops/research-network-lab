@@ -1,0 +1,32 @@
+groups:
+  - name: fabric
+    rules:
+      - alert: FabricLinkDown
+        expr: fabric_interface_up == 0
+        for: 2s
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.node }} {{ $labels.iface }} is down"
+
+      - alert: BGPPeerDown
+        expr: fabric_bgp_peer_established == 0
+        for: 4s
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.node }} lost its BGP session on {{ $labels.peer }}"
+
+      # Half the fabric's capacity is gone, even though everything is still reachable.
+      - alert: ECMPDegraded
+        expr: fabric_route_nexthops == 1
+        for: 4s
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $labels.node }} has one path left to {{ $labels.prefix }}"
+
+      # The failure Part A showed a session-only check misses: BGP is up, the route is gone.
+      - alert: PrefixMissing
+        expr: fabric_route_nexthops == 0
+        for: 2s
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.node }} has no route to {{ $labels.prefix }}"
