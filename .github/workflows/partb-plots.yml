@@ -1,0 +1,38 @@
+name: partb-plots
+
+# Rebuilds Part B's summary tables and figures from the CSVs committed under results/partb/,
+# using partb/plot.py. Nothing is measured here, so anyone can check that every committed
+# figure and summary comes from the committed data.
+on:
+  workflow_dispatch:
+  push:
+    paths: ["partb/plot.py", "results/partb/**", ".github/workflows/partb-plots.yml"]
+
+jobs:
+  plot:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install matplotlib==3.9.2
+      - name: Both grid runs together (6 repetitions per configuration)
+        run: python partb/plot.py results/partb out/combined
+      - name: Each grid run on its own (3 repetitions per configuration)
+        run: |
+          for d in results/partb/run-*/; do
+            python partb/plot.py "$d" "out/$(basename "$d")"
+          done
+      - name: Compare with the committed summaries
+        run: |
+          for s in out/*/summary.csv; do
+            d=$(basename "$(dirname "$s")")
+            c=results/partb/$d/summary.csv
+            [ "$d" = combined ] && c=results/partb/summary.csv
+            if [ -f "$c" ] && cmp -s "$s" "$c"; then echo "same      $c"; else echo "DIFFERENT $c"; fi
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: partb-plots
+          path: out

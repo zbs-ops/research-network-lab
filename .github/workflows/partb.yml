@@ -22,13 +22,15 @@ jobs:
         run: sudo apt-get update -q && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q iperf3 ethtool && iperf3 --version
       - name: Load BBR
         run: sudo modprobe tcp_bbr && cat /proc/sys/net/ipv4/tcp_available_congestion_control
+      # Write outside the checkout: results/partb/ already holds committed runs, and uploading it
+      # made the plot job count an earlier run's data as part of this one (run 41178340217).
       - name: Measure
-        run: sudo python3 partb/lfn.py --rtt ${{ matrix.rtt }} --out results/partb
+        run: sudo python3 partb/lfn.py --rtt ${{ matrix.rtt }} --out "$RUNNER_TEMP/partb"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: partb-rtt${{ matrix.rtt }}
-          path: results/partb
+          path: ${{ runner.temp }}/partb
 
   plot:
     needs: measure
