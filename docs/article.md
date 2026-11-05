@@ -8,7 +8,7 @@ I couldn't run real transatlantic links, so the lab emulates them and measures w
 
 ## The setup
 
-Everything runs on free GitHub Actions runners: 2 vCPUs, 7,932 MB of RAM, Ubuntu with kernel 7.0. My own laptop can't run Docker or `tc`, so the lab had to live somewhere that could. The first CI step proves the runner can do what the lab needs before anything relies on it. It creates a real `netem` qdisc on a dummy interface, reads BBR from the kernel's list of congestion-control algorithms, and reads `mtu 9000` back from a veth interface.
+Everything runs on free GitHub Actions runners: 2 vCPUs, 7,932 MB of RAM, Ubuntu with kernel 7.0. My own laptop can't run Docker or `tc`, so the lab had to live somewhere that could. The first CI step checks that the runner can do what the lab needs before anything relies on it. It creates a real `netem` qdisc on a dummy interface, reads BBR from the kernel's list of congestion-control algorithms, and reads `mtu 9000` back from a veth interface.
 
 There are three parts:
 
@@ -18,10 +18,10 @@ There are three parts:
 
 ## The fabric, briefly
 
-The fabric part is about failure, not throughput. Four planned breakages. For the first three, one host pinged the other every 100 ms throughout:
+The fabric part is about failure, not throughput. Four planned breakages, run on every push, so each has 22 CI runs behind it. For the first three, one host pinged the other every 100 ms throughout:
 
-- **A spine losing both links:** detected in 0.08 s, with zero pings lost. The leaf already had the second path installed, so traffic just moved.
-- **A link that stays up but drops every packet** (`netem loss 100%` on a live interface): the case interface monitoring can't see. BFD declared the peer down in 0.78 s. Without BFD, the 9-second BGP hold timer would have been the only detector.
+- **A spine losing both links:** the leaf had already dropped the dead path at the first check, within 0.12 s in every run, and the ping lost at most 1 packet in 150. The leaf already had the second path installed, so traffic just moved.
+- **A link that stays up but drops every packet** (`netem loss 100%` on a live interface): the case interface monitoring can't see. The leaf dropped the path 0.74 to 1.06 seconds after the loss began, in line with FRR's default BFD timers (three missed 300 ms packets). Without BFD, the 9-second BGP hold timer would have been the only detector. The ping is one flow on one ECMP path: when that path crossed the broken link it lost 8 to 10 packets, otherwise none.
 - **A link flapping three times:** the path through the other spine never moved.
 - **A bad outbound route-map on one leaf:** every BGP session stayed Established while a whole rack became unreachable. This one comes back in the monitoring section, because it's the failure a dashboard of green session lights hides.
 
@@ -29,7 +29,7 @@ The fabric part is about failure, not throughput. Four planned breakages. For th
 
 Each configuration ran 6 times across two separate CI runs. The figures are the median, with the range in brackets, in Mbit/s, on a 1 Gbit/s path.
 
-**Loss is what separates CUBIC from BBR.** With no loss, Linux's default (CUBIC) and Google's BBR are within a few percent of each other at every distance. With 0.1% random loss, one packet in a thousand:
+**Loss is what separates CUBIC from BBR.** With no loss, Linux's default (CUBIC) and Google's BBR are within 6% of each other at every distance. With 0.1% random loss, one packet in a thousand:
 
 | Round trip | CUBIC | BBR |
 |---|---|---|
@@ -47,15 +47,15 @@ CUBIC reads every loss as congestion and cuts its window. At 250 ms each recover
 
 ## The result that didn't fit
 
-BBR with 4 parallel streams at 250 ms was erratic, and not because of loss. With no loss at all, one run would deliver 806 Mbit/s and the next 201. Some of those runs had zero retransmits. I didn't write a guess into the results. The plan was to trace it until the evidence explained it, and here is the trace.
+BBR with 4 parallel streams at 250 ms was erratic, and not because of loss. With no loss at all, one test would deliver 806 Mbit/s and the next 201. Some of those runs had zero retransmits. I didn't write a guess into the results. The plan was to trace it until the evidence explained it, and here is the trace.
 
-First, the per-second data already in the iperf3 output. All four streams collapsed together, and from about second 5 the sender handed nothing to the socket for the rest of the test. Ten of the eleven collapses were at MTU 1500.
+First, the per-second data already in the iperf3 output. All four streams collapsed together, and from about second 5 the sender handed nothing to the socket for the rest of the test. Counting a test as collapsed when the sender wrote nothing for 4 or more of its 15 seconds, 12 of the 36 four-stream BBR tests at 250 ms collapsed, 10 of them at MTU 1500.
 
-Second, a probe that sampled every flow's TCP state (`ss`), both netem queues and the host CPU every half second. BBR, 4 streams, MTU 1500 stalled in 4 of 10 tests. MTU 9000 and CUBIC never stalled (10 of 10 each). CPU peaked at 38%. During a stall, each flow had a congestion window of more than 11,000 packets and a pacing rate around 300 Mbit/s, yet only 200 to 500 packets in flight. The emulator's queue was nearly empty and the round trip was back at 250 ms. So congestion control wasn't holding the flows back, and neither was the emulator.
+Second, a probe that sampled every flow's TCP state (`ss`), both netem queues and the host CPU every half second. BBR, 4 streams, MTU 1500 stalled in 4 of 10 tests. MTU 9000 and CUBIC never stalled (10 of 10 each). CPU peaked at 38%. During a stall, each flow had a congestion window of about 10,000 to 12,000 packets and a pacing rate of 240 to 330 Mbit/s, yet only 200 to 500 packets in flight. The emulator's queue was nearly empty and the round trip was back at 250 ms. So congestion control wasn't holding the flows back, and neither was the emulator.
 
-Third, the probe added the kernel's own counters. In every test, stalled or not, BBR's startup overshot hard: windows of about 15,000 packets per flow, the round trip ballooning to 733 ms, and global TCP memory reaching the kernel's `tcp_mem` pressure threshold. What separated the stalls was the receiver. It spent between 1.3 and 7 seconds under memory pressure, and the window it advertised fell to about 0.6 MB. In healthy tests it was about 100 MB. 0.6 MB is the 200 to 500 packets in flight. The path needs 31 MB.
+Third, the probe added the kernel's own counters. In every test, stalled or not, BBR's startup overshot hard: windows of about 15,000 packets per flow, the round trip ballooning to 733 ms, and global TCP memory reaching the kernel's `tcp_mem` pressure threshold. What separated the stalls was the receiver. In the 3 of 12 tests that stalled, it spent 4 to 7 seconds under memory pressure, and the window it advertised to each flow fell to about 0.5 to 0.7 MB. In the tests that ran at full speed it was 84 to 103 MB. 0.6 MB is about 400 packets of 1,448 bytes, in line with the 200 to 500 in flight. The path needs 31 MB.
 
-That's a correlation, so the last step was an intervention: the same 12 tests side by side on two runners, one with the normal `tcp_mem` limits and one with four times those limits. Normal limits: 3 of 12 stalled, with the same receiver pressure and the same tiny window. Four times the limits: none of 12 stalled, all between 788 and 805 Mbit/s, and no memory-pressure events at all. Across every probe run at normal limits, 10 of 34 tests stalled, against 0 of 12 with the higher limits (one-sided Fisher exact p = 0.03).
+That's a correlation, so the last step was an intervention: the same 12 tests side by side on two runners, one with the normal `tcp_mem` limits and one with four times those limits. Normal limits: 3 of 12 stalled, again with receiver memory pressure and small windows (0.3 to 8 MB per flow, against 40 MB or more in the tests that didn't stall). Four times the limits: none of 12 stalled, all between 788 and 805 Mbit/s, and no memory-pressure events at all. Across every probe run at normal limits, 10 of 34 tests stalled, against 0 of 12 with the higher limits (one-sided Fisher exact p = 0.03).
 
 The chain: four BBR flows overshoot during startup, total TCP memory reaches the pressure threshold, the receiver clamps its window and doesn't fully reopen it during the test, and every flow is window-limited from then on.
 
@@ -65,12 +65,12 @@ How much of this is the lab? Here the sender, the receiver and the emulator's qu
 
 The monitoring part asks a narrower question: when the fabric breaks, does monitoring notice quickly, and does it tell the right story?
 
-The exporter publishes link state and byte counters, BGP session state, and each leaf's number of working paths to the other rack. Four alert rules sit on top: link down, BGP peer down, ECMP degraded (one path left), and prefix missing (no path left). The test breaks things on purpose. Across three CI runs:
+The exporter publishes link state and byte counters, BGP session state, and each leaf's number of working paths to the other rack. Four alert rules sit on top: link down, BGP peer down, ECMP degraded (one path left), and prefix missing (no path left). The test breaks things on purpose. Across 11 CI runs:
 
-- **A link going down** fired the link alert in 3.0 to 4.6 seconds and the BGP and ECMP alerts in 5.0 to 6.6. The prefix alert correctly stayed silent, since the other spine still carried traffic.
+- **A link going down** fired the link alert in 3.0 to 5.6 seconds and the BGP and ECMP alerts in 5.0 to 7.6. The prefix alert correctly stayed silent, since the other spine still carried traffic.
 - **The bad route-map** fired the prefix alert in 3.5 to 5.5 seconds while every BGP alert stayed silent. That's the fabric section's worst failure, caught by the one check that looks at what the routers can actually reach, not whether they're talking.
 
-The spread between runs isn't jitter in the network. An alert waits for the next 2-second scrape, then the next 2-second rule evaluation, then its own hold time, so detection lands on Prometheus's clock. The first two runs gave identical numbers by coincidence of timing. The third didn't.
+The spread between runs isn't jitter in the network. An alert waits for the next 2-second scrape, then the next 2-second rule evaluation, then its own hold time, so detection lands on Prometheus's clock. The first two runs gave identical numbers by coincidence of timing; the others didn't.
 
 The dashboard had its own bugs. Up links first showed red and down links green. One panel didn't render. A 6.3 Mbit/s burst showed as about 400 kb/s, because Grafana assumed points 15 seconds apart when Prometheus collected every 2. Each one was caught in a screenshot and fixed, and the next run checked the fix.
 
@@ -83,6 +83,6 @@ The dashboard had its own bugs. Up links first showed red and down links green. 
 
 ## Limits
 
-This is an emulator on one shared cloud VM. Real paths add reordering, varying delay, bursty loss and competing traffic. The tests last 15 seconds, which favours whatever ramps up fastest. Long transfers would shrink startup effects and make CUBIC's slow recovery cost even more. The kernel's BBR is version 1. And two counters stayed unexplained, so neither is used for any claim: one BBR test with 106,267 retransmits that never recurred, and netem's own drop counter, which reports drops in tests that had zero retransmits.
+This is an emulator on one shared cloud VM. Real paths add reordering, varying delay, bursty loss and competing traffic. The tests last 15 seconds, which favours whatever ramps up fastest. Long transfers would shrink startup effects and make CUBIC's slow recovery cost even more. The kernel's BBR is version 1. And two counters stayed unexplained, so neither is used for any claim: three BBR tests in the first grid run with tens to hundreds of thousands of retransmits on single streams, which didn't recur in the second run, and netem's own drop counter, which reports drops in tests that had zero retransmits.
 
 The raw data for every number here is in the repository, next to the CI run that produced it.
