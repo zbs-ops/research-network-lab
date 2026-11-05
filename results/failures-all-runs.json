@@ -1,0 +1,841 @@
+{
+  "about": "Every successful fabric.yml run up to commit 01d5727 that ran tests/test_failures.py. Each \"results\" array is parsed from the \"FAILURES_JSON\" line that the test prints in the run's log. The test and router configs did not change across these runs, apart from adding vtysh.conf (14275d5).",
+  "runs": [
+    {
+      "run": 41171994859,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41171994859",
+      "commit": "b9632c0",
+      "started": "2026-10-31T05:17:29Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.08,
+          "recovered_s": 2.96,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.78,
+          "recovered_s": 2.39,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.95,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.65,
+          "recovered_s": 0.65,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41172132293,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41172132293",
+      "commit": "2e01553",
+      "started": "2026-10-31T05:19:31Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.07,
+          "recovered_s": 4.04,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 13.9,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.74,
+          "recovered_s": 2.34,
+          "pings_lost_of_150": 8,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 1.77,
+          "pings_lost_of_150": 1,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.64,
+          "recovered_s": 0.64,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41172551046,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41172551046",
+      "commit": "3126bd7",
+      "started": "2026-10-31T05:25:39Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.06,
+          "recovered_s": 3.46,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 13.9,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.88,
+          "recovered_s": 2.32,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.32,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.62,
+          "recovered_s": 0.62,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41173360856,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41173360856",
+      "commit": "0df8d26",
+      "started": "2026-10-31T05:37:46Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.08,
+          "recovered_s": 4.13,
+          "pings_lost_of_150": 1,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 15,
+          "since_restore_s": 10.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.81,
+          "recovered_s": 2.38,
+          "pings_lost_of_150": 8,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.4,
+          "pings_lost_of_150": 1,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.66,
+          "recovered_s": 0.66,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41173494939,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41173494939",
+      "commit": "6a2b4ed",
+      "started": "2026-10-31T05:39:57Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.08,
+          "recovered_s": 4.12,
+          "pings_lost_of_150": 1,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 15,
+          "since_restore_s": 10.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.78,
+          "recovered_s": 2.38,
+          "pings_lost_of_150": 8,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.38,
+          "pings_lost_of_150": 2,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.65,
+          "recovered_s": 0.65,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41173627135,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41173627135",
+      "commit": "14275d5",
+      "started": "2026-10-31T05:41:56Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.09,
+          "recovered_s": 3,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 1.02,
+          "recovered_s": 2.42,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 3,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.67,
+          "recovered_s": 0.67,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41173737743,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41173737743",
+      "commit": "6940902",
+      "started": "2026-10-31T05:43:40Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.09,
+          "recovered_s": 3.03,
+          "pings_lost_of_150": 1,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 15,
+          "since_restore_s": 10.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 1.02,
+          "recovered_s": 2.42,
+          "pings_lost_of_150": 9,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 3.01,
+          "pings_lost_of_150": 1,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.67,
+          "recovered_s": 0.67,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41176590011,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41176590011",
+      "commit": "e156263",
+      "started": "2026-10-31T06:26:08Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.09,
+          "recovered_s": 3.05,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.84,
+          "recovered_s": 2.46,
+          "pings_lost_of_150": 9,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 4.23,
+          "pings_lost_of_150": 2,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.68,
+          "recovered_s": 0.68,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41178340295,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41178340295",
+      "commit": "02d0770",
+      "started": "2026-10-31T06:52:29Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.09,
+          "recovered_s": 4.2,
+          "pings_lost_of_150": 1,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 15,
+          "since_restore_s": 10.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.84,
+          "recovered_s": 2.43,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 3.03,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.67,
+          "recovered_s": 0.68,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41180107974,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41180107974",
+      "commit": "7962c6e",
+      "started": "2026-10-31T07:18:53Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.08,
+          "recovered_s": 2.99,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 1,
+          "recovered_s": 2.4,
+          "pings_lost_of_150": 10,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 1.83,
+          "pings_lost_of_150": 1,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.67,
+          "recovered_s": 0.66,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41388122359,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41388122359",
+      "commit": "a80eea2",
+      "started": "2026-11-02T04:22:44Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.09,
+          "recovered_s": 4.21,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 1.02,
+          "recovered_s": 2.43,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.45,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.68,
+          "recovered_s": 0.68,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41388315086,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41388315086",
+      "commit": "ba80cf8",
+      "started": "2026-11-02T04:24:47Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.12,
+          "recovered_s": 3.02,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.6
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 1.02,
+          "recovered_s": 1.85,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.43,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.68,
+          "recovered_s": 0.68,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41388642651,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41388642651",
+      "commit": "bf2952d",
+      "started": "2026-11-02T04:28:17Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.09,
+          "recovered_s": 3.04,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 1.03,
+          "recovered_s": 2.46,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 3.02,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.68,
+          "recovered_s": 0.67,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41388887160,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41388887160",
+      "commit": "66058cb",
+      "started": "2026-11-02T04:30:52Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.07,
+          "recovered_s": 4.05,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.91,
+          "recovered_s": 2.34,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.92,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.64,
+          "recovered_s": 0.64,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41390140572,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41390140572",
+      "commit": "7e6dc7f",
+      "started": "2026-11-02T04:44:38Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.09,
+          "recovered_s": 3.6,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.83,
+          "recovered_s": 2.43,
+          "pings_lost_of_150": 9,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 3.01,
+          "pings_lost_of_150": 2,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.67,
+          "recovered_s": 0.67,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41390192071,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41390192071",
+      "commit": "3937e23",
+      "started": "2026-11-02T04:45:12Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.08,
+          "recovered_s": 3,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 1,
+          "recovered_s": 2.41,
+          "pings_lost_of_150": 10,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.43,
+          "pings_lost_of_150": 1,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.66,
+          "recovered_s": 0.66,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41390596779,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41390596779",
+      "commit": "7354e40",
+      "started": "2026-11-02T04:49:48Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.09,
+          "recovered_s": 3.05,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 1.06,
+          "recovered_s": 2.46,
+          "pings_lost_of_150": 10,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 3.04,
+          "pings_lost_of_150": 1,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.68,
+          "recovered_s": 0.68,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41391093474,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41391093474",
+      "commit": "1bde7a7",
+      "started": "2026-11-02T04:55:29Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.09,
+          "recovered_s": 3.65,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.84,
+          "recovered_s": 2.46,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.44,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.68,
+          "recovered_s": 0.67,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41391117835,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41391117835",
+      "commit": "917469c",
+      "started": "2026-11-02T04:55:46Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.08,
+          "recovered_s": 4.12,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.96,
+          "recovered_s": 2.39,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.96,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.65,
+          "recovered_s": 0.66,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41391301830,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41391301830",
+      "commit": "f10daf5",
+      "started": "2026-11-02T04:57:55Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.06,
+          "recovered_s": 2.86,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.74,
+          "recovered_s": 2.3,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 1.75,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.62,
+          "recovered_s": 0.62,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41391365758,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41391365758",
+      "commit": "dc8cd4e",
+      "started": "2026-11-02T04:58:42Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.06,
+          "recovered_s": 4.53,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 13.9,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 1,
+          "recovered_s": 2.29,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 2.86,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.62,
+          "recovered_s": 0.61,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    },
+    {
+      "run": 41391387245,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41391387245",
+      "commit": "01d5727",
+      "started": "2026-11-02T04:58:58Z",
+      "results": [
+        {
+          "scenario": "spine down (links dark)",
+          "detected_s": 0.09,
+          "recovered_s": 4.19,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "leaf1 drops to one path for 10.1.2.0/24; BGP sessions to spine1 go Idle",
+          "since_failure_s": 14,
+          "since_restore_s": 9.7
+        },
+        {
+          "scenario": "silent link failure (100% loss, link up)",
+          "detected_s": 0.83,
+          "recovered_s": 2.42,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "interface operstate still 'up'; BFD peer down, then BGP session down on eth1"
+        },
+        {
+          "scenario": "link flap x3 (leaf1-spine1)",
+          "detected_s": null,
+          "recovered_s": 3.59,
+          "pings_lost_of_150": 0,
+          "seen_by_operator": "BGP session on leaf1 eth1 resets three times; the path through spine2 never moves"
+        },
+        {
+          "scenario": "BGP misconfig (outbound route-map denies all on leaf2)",
+          "detected_s": 0.67,
+          "recovered_s": 0.68,
+          "pings_lost_of_150": null,
+          "seen_by_operator": "both leaf2 sessions still Established (2/2) but leaf1 has no route to 10.1.2.0/24; leaf2 advertised-routes shows nothing"
+        }
+      ]
+    }
+  ]
+}

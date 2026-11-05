@@ -1,0 +1,291 @@
+{
+  "about": "Every successful monitoring.yml run up to commit 01d5727 that ran tests/test_monitoring.py. Each \"results\" array is parsed from the \"MONITORING_JSON\" line that the test prints in the run's log. Only a comment in the test changed across these runs (bf2952d).",
+  "runs": [
+    {
+      "run": 41388315089,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41388315089",
+      "commit": "ba80cf8",
+      "started": "2026-11-02T04:24:47Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 6322187
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 4.6,
+          "BGPPeerDown_fired_s": 6.6,
+          "ECMPDegraded_fired_s": 6.6,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 6
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 5.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 4
+        }
+      ]
+    },
+    {
+      "run": 41388642572,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41388642572",
+      "commit": "bf2952d",
+      "started": "2026-11-02T04:28:17Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 6335026
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 4.6,
+          "BGPPeerDown_fired_s": 6.6,
+          "ECMPDegraded_fired_s": 6.6,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 6
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 5.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 4
+        }
+      ]
+    },
+    {
+      "run": 41388887136,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41388887136",
+      "commit": "66058cb",
+      "started": "2026-11-02T04:30:52Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 6460249
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 3,
+          "BGPPeerDown_fired_s": 5,
+          "ECMPDegraded_fired_s": 5,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 4
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 3.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 2
+        }
+      ]
+    },
+    {
+      "run": 41390140582,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41390140582",
+      "commit": "7e6dc7f",
+      "started": "2026-11-02T04:44:38Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 6293360
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 4.1,
+          "BGPPeerDown_fired_s": 6.1,
+          "ECMPDegraded_fired_s": 6.1,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 6
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 5.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 4
+        }
+      ]
+    },
+    {
+      "run": 41390192067,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41390192067",
+      "commit": "3937e23",
+      "started": "2026-11-02T04:45:12Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 6009218
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 4.5,
+          "BGPPeerDown_fired_s": 6.6,
+          "ECMPDegraded_fired_s": 6.6,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 6
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 5.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 2
+        }
+      ]
+    },
+    {
+      "run": 41390596718,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41390596718",
+      "commit": "7354e40",
+      "started": "2026-11-02T04:49:48Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 6892216
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 3.6,
+          "BGPPeerDown_fired_s": 5.6,
+          "ECMPDegraded_fired_s": 5.6,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 6
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 3.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 2
+        }
+      ]
+    },
+    {
+      "run": 41391093338,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41391093338",
+      "commit": "1bde7a7",
+      "started": "2026-11-02T04:55:29Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 6793725
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 3.6,
+          "BGPPeerDown_fired_s": 5.6,
+          "ECMPDegraded_fired_s": 5.6,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 6
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 3.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 2
+        }
+      ]
+    },
+    {
+      "run": 41391117807,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41391117807",
+      "commit": "917469c",
+      "started": "2026-11-02T04:55:46Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 5941292
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 5.1,
+          "BGPPeerDown_fired_s": 7.1,
+          "ECMPDegraded_fired_s": 7.1,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 6
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 5.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 3.5
+        }
+      ]
+    },
+    {
+      "run": 41391301855,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41391301855",
+      "commit": "f10daf5",
+      "started": "2026-11-02T04:57:55Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 7449566
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 5.6,
+          "BGPPeerDown_fired_s": 7.6,
+          "ECMPDegraded_fired_s": 7.6,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 6
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 5.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 2
+        }
+      ]
+    },
+    {
+      "run": 41391365696,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41391365696",
+      "commit": "dc8cd4e",
+      "started": "2026-11-02T04:58:42Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 7555617
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 5.1,
+          "BGPPeerDown_fired_s": 7.1,
+          "ECMPDegraded_fired_s": 7.1,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 6
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 5.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 1.5
+        }
+      ]
+    },
+    {
+      "run": 41391387321,
+      "url": "https://github.com/zbs-ops/research-network-lab/actions/runs/41391387321",
+      "commit": "01d5727",
+      "started": "2026-11-02T04:58:58Z",
+      "results": [
+        {
+          "scenario": "ping traffic host1 -> host2",
+          "peak_spine_tx_bps": 7032032
+        },
+        {
+          "scenario": "leaf1 eth1 down",
+          "FabricLinkDown_fired_s": 5,
+          "BGPPeerDown_fired_s": 7,
+          "ECMPDegraded_fired_s": 7,
+          "PrefixMissing_fired": false,
+          "all_cleared_after_restore_s": 6
+        },
+        {
+          "scenario": "outbound route-map denies all on leaf2",
+          "PrefixMissing_fired_s": 3.5,
+          "BGPPeerDown_fired": false,
+          "all_cleared_after_fix_s": 2
+        }
+      ]
+    }
+  ]
+}
