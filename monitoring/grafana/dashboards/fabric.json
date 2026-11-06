@@ -24,8 +24,7 @@
       "datasource": {"type": "prometheus", "uid": "prom"},
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]},
+          "color": {"mode": "fixed", "fixedColor": "text"},
           "mappings": [{"type": "value", "options": {"0": {"text": "down", "color": "red"}, "1": {"text": "up", "color": "green"}}}]
         },
         "overrides": []
@@ -40,8 +39,7 @@
       "datasource": {"type": "prometheus", "uid": "prom"},
       "fieldConfig": {
         "defaults": {
-          "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]},
+          "color": {"mode": "fixed", "fixedColor": "text"},
           "mappings": [{"type": "value", "options": {"0": {"text": "down", "color": "red"}, "1": {"text": "established", "color": "green"}}}]
         },
         "overrides": []
