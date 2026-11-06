@@ -49,13 +49,16 @@ Raw data: `results/monitoring/run-<id>.json`.
 
 **The important result isn't speed.** In all 11 runs, the policy mistake raised PrefixMissing while BGPPeerDown stayed silent. That's exactly the case where a session-only monitor shows everything green and a rack is unreachable. And a single dead link never raised PrefixMissing, so the two alerts tell the two failures apart.
 
-![The dashboard after the test run, run 41388887136](../results/monitoring/grafana-fabric-run-41388887136.png)
+![The dashboard after the test run, run 42158907131](../results/monitoring/grafana-fabric-run-42158907131.png)
+
+The screenshot is from a later run (42158907131, Nov 6), after the label fix below. Its alert times fall inside the ranges above; it isn't counted in the 11 runs.
 
 ## What broke, and how it was fixed
 
-1. **The dashboard showed up as red and down as green.** The state panels had no colour mapping, so Grafana's default palette coloured the value 1 red. Fixed with explicit thresholds: 0 is red, 1 is green. Seen in run 41388315089's screenshot.
+1. **The dashboard showed up as red and down as green.** The state panels had no colour mapping, so Grafana's default palette coloured the value 1 red. Fixed with explicit thresholds: 0 is red, 1 is green (later replaced, see 4). Seen in run 41388315089's screenshot.
 2. **The alerts panel said "Data does not have a time field".** It queried `ALERTS` in a state-timeline panel. It's now a bar chart of `count by (alertname) (ALERTS{alertstate="firing"})`.
 3. **The dashboard understated short events.** Run 41388642572's throughput panel peaked at about 400 kb/s while the test measured 6.3 Mbit/s, and the alerts panel missed two of the alerts. Grafana assumed a 15 s step between points, so a 5-second burst got averaged away. The fix tells the datasource the real 2 s scrape interval (`timeInterval: 2s`). In the next run the panel peaked at about 6.4 Mbit/s against a measured 6.46.
+4. **The state panels read "< 1" and "1+" instead of "down" and "up".** The down/up value mapping was there, but in a state timeline, colour mode "thresholds" with two or more steps makes Grafana label the bars and the legend by threshold, which hides the mapping. Seen in run 41388887136's screenshot. Fixed by switching those panels to a fixed colour mode, so the mapping sets both the label and the colour.
 
 ## Limits
 
