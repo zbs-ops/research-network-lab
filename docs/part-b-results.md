@@ -11,6 +11,7 @@
 - Each test is a 15-second `iperf3` run. Every configuration was run 3 times in each of two separate CI runs, 6 repetitions in total:
   - [run 41176590070](https://github.com/zbs-ops/research-network-lab/actions/runs/41176590070) (raw data: `results/partb/run-41176590070/`)
   - [run 41178340217](https://github.com/zbs-ops/research-network-lab/actions/runs/41178340217) (raw data: `results/partb/run-41178340217/`)
+- Other `partb` runs exist and are not used here. Runs 41388122411, 41390140569 and 41390596674 (Nov 2) started on their own because the workflow runs on every push, and they came before the fix for the bug that mixed committed CSVs into a new run's summary. Run 41982845545 (Nov 5) was started by that fix's own push. None of their numbers appear in this write-up.
 - Every raw iperf3 JSON is in the repo, with the exact qdisc applied and the measured ping RTT.
 - The medians below are in `results/partb/summary.csv`, which `partb/plot.py` builds from both runs' CSVs (the `partb-plots` workflow rebuilds it in CI). Its `measured_rtt_ms` column is the first repetition's.
 
