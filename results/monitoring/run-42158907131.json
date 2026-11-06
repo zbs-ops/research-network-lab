@@ -1,0 +1,20 @@
+[
+  {
+    "scenario": "ping traffic host1 -> host2",
+    "peak_spine_tx_bps": 6805753
+  },
+  {
+    "scenario": "leaf1 eth1 down",
+    "FabricLinkDown_fired_s": 4.0,
+    "BGPPeerDown_fired_s": 6.1,
+    "ECMPDegraded_fired_s": 6.1,
+    "PrefixMissing_fired": false,
+    "all_cleared_after_restore_s": 6.0
+  },
+  {
+    "scenario": "outbound route-map denies all on leaf2",
+    "PrefixMissing_fired_s": 3.5,
+    "BGPPeerDown_fired": false,
+    "all_cleared_after_fix_s": 2.0
+  }
+]
