@@ -22,6 +22,9 @@ from pathlib import Path
 import metrics
 
 
+USABLE = ("ok", "readback-failed")
+
+
 def run_id(path: Path) -> str:
     m = re.search(r"run-(\d+)", str(path))
     return m.group(1) if m else "?"
@@ -45,7 +48,7 @@ def recompute(rec: dict) -> dict:
     base = {k: rec.get(k) for k in ("exp", "members", "timeouts", "heartbeat_ms", "election_ms", "fault",
                                     "delay_ms", "loss_pct", "rep", "status")}
     base["run"] = rec["_run"]
-    if rec.get("status") not in ("ok", "readback-failed"):
+    if rec.get("status") not in USABLE:
         return [base]
     tf = rec["actions"]["fault"]["t_done"]
     win = rec["window_s"]
@@ -105,11 +108,16 @@ def summarise(rows: list[dict], keys: tuple, cols: list[tuple]) -> list[dict]:
     out = []
     for k in sorted(groups, key=lambda t: tuple((x is None, x) for x in t)):
         g = groups[k]
-        ok = [r for r in g if r.get("status") == "ok"]
+        # A trial whose read-back failed still has a valid election and write record (in run
+        # 42452414571 the cluster had no stable leader for the read), so it stays in the medians
+        # and is counted in readback_failed; its keys can't be checked, so it adds to neither
+        # 'acked' nor 'lost'.
+        ok = [r for r in g if r.get("status") in USABLE]
         row = dict(zip(keys, k))
         row["trials"] = len(g)
         row["ok"] = len(ok)
-        row["not_ok"] = ";".join(sorted({r["status"] for r in g if r.get("status") != "ok"}))
+        row["readback_failed"] = sum(1 for r in g if r.get("status") == "readback-failed")
+        row["not_ok"] = ";".join(sorted({r["status"] for r in g if r.get("status") not in USABLE}))
         for name, field in cols:
             vals = [r.get(field) for r in ok]
             row[name] = med_range(vals)

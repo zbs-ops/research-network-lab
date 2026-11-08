@@ -20,7 +20,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-from analyze import load, recompute  # noqa: E402
+from analyze import USABLE, load, recompute  # noqa: E402
 
 # Categorical slots 1-2 of the reference palette (blue, orange); text and grid stay neutral.
 TMO_COLOR = {"default": "#2a78d6", "tuned": "#eb6834"}
@@ -37,7 +37,7 @@ def series(rows, x_field, fixed_field, fixed_val):
     """{(members, timeouts, fault): {x: [election_s...]}} for ok trials with fixed_field == fixed_val."""
     out = defaultdict(lambda: defaultdict(list))
     for r in rows:
-        if r["exp"] != "election" or r.get("status") != "ok" or r[fixed_field] != fixed_val:
+        if r["exp"] != "election" or r.get("status") not in USABLE or r[fixed_field] != fixed_val:
             continue
         if r.get("election_s") is not None:
             out[(r["members"], r["timeouts"], r["fault"])][r[x_field]].append(r["election_s"])
@@ -72,7 +72,7 @@ def sweep(rows, x_field, fixed_field, xlabel, fname, out: Path):
 
 
 def heatmaps(rows, out: Path):
-    ok = [r for r in rows if r["exp"] == "election" and r.get("status") == "ok"]
+    ok = [r for r in rows if r["exp"] == "election" and r.get("status") in USABLE]
     delays = sorted({r["delay_ms"] for r in ok})
     losses = sorted({r["loss_pct"] for r in ok})
     if len(delays) < 2 or len(losses) < 2:
