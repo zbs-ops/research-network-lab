@@ -58,6 +58,8 @@ def recompute(rec: dict) -> dict:
         election_s=el["election_s"], all_know_s=el["all_know_s"], candidate_rounds=el["candidate_rounds"],
         pre_candidate_rounds=el["pre_candidate_rounds"],
         leader_changes_before_fault=metrics.leader_changes(rec["events"], 0, tf),
+        # more than 1: a new leader lost leadership again inside the window
+        leaders_in_window=metrics.leader_changes(rec["events"], tf, tf + win),
         fault_apply_s=round(tf - rec["actions"]["fault"]["t_start"], 6),
         acked=rb.get("acked"), lost=rb.get("lost"), wrong=rb.get("wrong"),
         unacked_committed=rb.get("unacked_committed"), unacked=rb.get("unacked"),
@@ -68,11 +70,16 @@ def recompute(rec: dict) -> dict:
         r = dict(base, stream=p)
         if rec["exp"] == "partition":
             r["side"] = {"min": "minority", "maj": "majority"}[p]
-        before = metrics.write_stats(ws, 0, tf)
+        # Baseline: writes that finished (or timed out) before the fault could touch them. Writes
+        # sent in the last client-timeout before the fault can still be in flight when it hits;
+        # in run 42452414571 those were acked ~1.7 s later by the new leader, which made the
+        # "before" p99 look like an election.
+        before = metrics.write_stats(ws, 0, tf - rec["client_timeout_s"])
         fault = metrics.write_stats(ws, tf, tf + win)
         allw = metrics.write_stats(ws)
         r.update(
             before_p50_ms=before.get("p50_ms"), before_p99_ms=before.get("p99_ms"),
+            baseline_writes=before.get("sent"),
             fault_success=fault.get("success_rate"), fault_sent=fault.get("sent"), fault_acked=fault.get("acked"),
             longest_gap_s=allw.get("longest_gap_s"), all_success=allw.get("success_rate"),
             all_p50_ms=allw.get("p50_ms"), all_p99_ms=allw.get("p99_ms"), all_max_ms=allw.get("max_ms"),
@@ -154,6 +161,7 @@ def main() -> None:
                    ("members", "timeouts", "fault", "delay_ms", "loss_pct"),
                    [("election_s", "election_s"), ("candidate_rounds", "candidate_rounds"),
                     ("leader_changes_before_fault", "leader_changes_before_fault"),
+                    ("leaders_in_window", "leaders_in_window"), ("baseline_writes", "baseline_writes"),
                     ("fault_success", "fault_success"), ("longest_gap_s", "longest_gap_s"),
                     ("before_p50_ms", "before_p50_ms"), ("before_p99_ms", "before_p99_ms"),
                     ("all_p50_ms", "all_p50_ms"), ("all_p99_ms", "all_p99_ms")])

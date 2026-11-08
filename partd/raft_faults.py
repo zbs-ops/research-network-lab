@@ -185,7 +185,7 @@ def trial(exp: str, n: int, tmo: str, fault: str, delay, loss, rep: int, out: Pa
     rec["stats"] = {}
     for p, ws in rec["writes"].items():
         rec["stats"][p] = {
-            "before": metrics.write_stats(ws, 0, tf),
+            "before": metrics.write_stats(ws, 0, tf - ARGS.client_timeout),  # nothing in flight at the fault
             "fault": metrics.write_stats(ws, tf, tf + ARGS.window),
             "all": metrics.write_stats(ws),
             "first_ack_after_fault_s": metrics.first_ack_after(ws, tf),
@@ -213,7 +213,8 @@ def main() -> None:
     ap.add_argument("--reps", type=int, default=5)
     ap.add_argument("--rate", type=float, default=50, help="writes per second, per client")
     ap.add_argument("--client-timeout", type=float, default=2.0)
-    ap.add_argument("--pre", type=float, default=3.0, help="seconds of writes before the fault")
+    ap.add_argument("--pre", type=float, default=8.0,
+                    help="seconds of writes before the fault (the last client-timeout of them isn't baseline)")
     ap.add_argument("--window", type=float, default=8.0, help="seconds from the fault to the heal")
     ap.add_argument("--post", type=float, default=4.0, help="seconds of writes after the window")
     ap.add_argument("--form-timeout", type=float, default=60.0)
