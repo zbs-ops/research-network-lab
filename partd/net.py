@@ -114,8 +114,14 @@ def partition(n: int, side_a: list[int], side_b: list[int]) -> list[str]:
 
 
 def isolate(n: int, i: int) -> list[str]:
-    """Cut member i off from every other member. The client can still reach it."""
-    return partition(n, [i], [j for j in range(1, n + 1) if j != i])
+    """Cut member i off from every other member. The client can still reach it.
+
+    Two rules on member i's peer interface, so the cut takes effect at once (per-address rules
+    in every namespace take 4(n-1) iptables calls, tens of milliseconds, to apply).
+    """
+    ns(i, "iptables", "-I", "INPUT", "-i", "p0", "-j", "DROP")
+    ns(i, "iptables", "-I", "OUTPUT", "-o", "p0", "-j", "DROP")
+    return [f"rd{i}: drop everything in and out of p0"]
 
 
 def heal(n: int) -> None:
