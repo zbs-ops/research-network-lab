@@ -145,3 +145,16 @@ With the old leader in the majority:
 So after a partition heals, a member that was cut off can stay useless for seconds after it has rejoined. The delay is set by whichever comes first, the kernel's exponential TCP backoff on the old connection or etcd's write deadline on the stream, not by Raft. Because the backoff keeps doubling, it should grow with the length of the partition; only 10 s partitions were measured here. An application that sends writes to whichever member it can reach would see those seconds as an outage on that member.
 
 With the old leader in the minority, the old leader's writer recovered in 0.01–0.13 s at 0 ms, although the new leader's connections to it showed similar backed-off timers (2.79–4.01 s left). Why that path doesn't wait isn't established; see open question 2.
+
+## 5. No acknowledged write was lost
+
+After every trial (after the heal, for isolations and partitions) a linearizable range read fetched every key the client had written, and each acknowledged write was checked for presence and value.
+
+Election trials with a completed read-back: 1279 (1 read-back failed), 1027962 acknowledged writes, 0 missing or wrong. Partition trials: 203153 acknowledged writes, 0 missing or wrong. Runs: [42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571), [42454644849](https://github.com/zbs-ops/research-network-lab/actions/runs/42454644849)
+
+- **Every acknowledged write survived:** 1,027,962 in the 1,279 election trials with a completed read-back and 203,153 in the 120 partition trials, with 0 missing and 0 with the wrong value. The old leader, cut off in the minority, acknowledged none of the writes sent to it during the partition, so there was nothing there that had to survive.
+- **A timeout says nothing about the outcome.** Of the writes the client gave up on (timed out or got an error), 34,149 of 91,288 in the election trials and 20,151 of 64,847 in the partition trials were committed anyway (`unacked_committed` in `trials.csv`). A client that retries a timed-out write without making it idempotent would write it twice.
+- **Writes in flight when the leader died weren't lost either.** In the trial behind the "pre-fault p99" problem (5 members, defaults, 50 ms, repetition 1 of [run 42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571)), five writes sent 0.06–0.14 s before the kill were acknowledged about 1.7 s later, after the new leader had committed them, and all five are in the read-back.
+- One election trial couldn't be checked (its read-back failed; see "What broke"), so the count above is over the other 1,279.
+
+This is a check of etcd under these faults, not a proof. Each trial checks one client's writes with unique keys against one final read; it doesn't look for stale reads or check histories the way Jepsen does.
