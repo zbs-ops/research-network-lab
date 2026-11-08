@@ -1,0 +1,32 @@
+name: partd-plots
+
+# Rebuilds Part D's summary tables and figures from the trial files committed under
+# results/partd/, using partd/analyze.py and partd/plot.py. Nothing is measured here, so anyone
+# can check that every committed table and figure comes from the committed data.
+on:
+  workflow_dispatch:
+  push:
+    paths: ["partd/analyze.py", "partd/plot.py", "partd/metrics.py", "results/partd/**", ".github/workflows/partd-plots.yml"]
+
+jobs:
+  plot:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install matplotlib==3.9.2
+      - name: Summaries from every committed run
+        run: python partd/analyze.py results/partd --out out
+      - name: Figures
+        run: python partd/plot.py results/partd --out out/plots
+      - name: Compare with the committed summaries
+        run: |
+          for f in election_summary.csv partition_summary.csv trials.csv; do
+            if [ -f "results/partd/$f" ] && cmp -s "out/$f" "results/partd/$f"; then echo "same      results/partd/$f"; else echo "DIFFERENT results/partd/$f"; fi
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: partd-plots
+          path: out
