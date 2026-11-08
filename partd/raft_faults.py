@@ -98,9 +98,10 @@ def heal_actions(n: int, t_heal: float) -> list:
             (t_heal + 1.0, "sockets_after_heal_1s", snap)]
 
 
-def trial(exp: str, n: int, tmo: str, fault: str, delay, loss, rep: int, out: Path, local: bool) -> dict:
+def trial(exp: str, n: int, tmo: str, fault: str, delay, loss, rep: int, out: Path, local: bool,
+          tag: str = "") -> dict:
     hb, el = TIMEOUTS[tmo]
-    name = f"{exp}_n{n}_{tmo}_{fault}_d{delay}_l{loss}_r{rep}"
+    name = f"{exp}_n{n}_{tmo}_{fault}_d{delay}_l{loss}{tag}_r{rep}"
     rec = {"name": name, "exp": exp, "members": n, "timeouts": tmo, "heartbeat_ms": hb, "election_ms": el,
            "fault": fault, "delay_ms": delay, "loss_pct": loss, "rep": rep, "rate": ARGS.rate,
            "client_timeout_s": ARGS.client_timeout, "pre_s": ARGS.pre, "window_s": ARGS.window,
@@ -216,6 +217,8 @@ def main() -> None:
     ap.add_argument("--pre", type=float, default=8.0,
                     help="seconds of writes before the fault (the last client-timeout of them isn't baseline)")
     ap.add_argument("--window", type=float, default=8.0, help="seconds from the fault to the heal")
+    ap.add_argument("--windows", default="", help="comma list of windows to sweep (overrides --window; "
+                                                   "trial names get _w<seconds>)")
     ap.add_argument("--post", type=float, default=4.0, help="seconds of writes after the window")
     ap.add_argument("--form-timeout", type=float, default=60.0)
     ap.add_argument("--etcd", default="/usr/local/bin/etcd")
@@ -226,6 +229,7 @@ def main() -> None:
     ARGS.out.mkdir(parents=True, exist_ok=True)
 
     tmos, faults = ARGS.timeouts.split(","), ARGS.faults.split(",")
+    windows = floats(ARGS.windows) if ARGS.windows else [ARGS.window]
     cells = grid(floats(ARGS.delays), floats(ARGS.losses), ARGS.grid)
     manifest = {"argv": vars(ARGS) | {"out": str(ARGS.out), "duration": ARGS.duration},
                 "etcd": etcd_version(ARGS.etcd), "kernel": platform.release(), "cells": cells,
@@ -237,12 +241,14 @@ def main() -> None:
     try:
         # Repetition is the outer loop, so slow drift on the runner spreads over every config.
         for rep in range(1, ARGS.reps + 1):
-            for tmo, fault, (d, lo) in itertools.product(tmos, faults, cells):
+            for tmo, fault, (d, lo), win in itertools.product(tmos, faults, cells, windows):
+                ARGS.window, ARGS.duration = win, ARGS.pre + win + ARGS.post
+                tag = f"_w{win}" if ARGS.windows else ""
                 try:
-                    rec = trial(ARGS.exp, ARGS.members, tmo, fault, d, lo, rep, ARGS.out, ARGS.local)
+                    rec = trial(ARGS.exp, ARGS.members, tmo, fault, d, lo, rep, ARGS.out, ARGS.local, tag)
                 except Exception as ex:  # keep going; the failure is recorded, not hidden
                     import traceback
-                    rec = {"name": f"{ARGS.exp}_n{ARGS.members}_{tmo}_{fault}_d{d}_l{lo}_r{rep}",
+                    rec = {"name": f"{ARGS.exp}_n{ARGS.members}_{tmo}_{fault}_d{d}_l{lo}{tag}_r{rep}",
                            "status": "error", "error": traceback.format_exc()[-2000:]}
                     print(rec["error"], flush=True)
                 (ARGS.out / f"{rec['name']}.json").write_text(json.dumps(rec, separators=(",", ":")))
@@ -258,7 +264,8 @@ def main() -> None:
     finally:
         manifest["finished"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         manifest["status_counts"] = dict(done)
-        (ARGS.out / f"manifest_{ARGS.exp}_n{ARGS.members}_{ARGS.timeouts}_{ARGS.faults}.json".replace(",", "+")
+        wtag = f"_w{ARGS.windows}" if ARGS.windows else ""
+        (ARGS.out / f"manifest_{ARGS.exp}_n{ARGS.members}_{ARGS.timeouts}_{ARGS.faults}{wtag}.json".replace(",", "+")
          ).write_text(json.dumps(manifest, indent=1))
         if not ARGS.local:
             net.teardown()
