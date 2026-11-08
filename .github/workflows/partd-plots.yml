@@ -6,7 +6,7 @@ name: partd-plots
 on:
   workflow_dispatch:
   push:
-    paths: ["partd/analyze.py", "partd/plot.py", "partd/metrics.py", "results/partd/**", ".github/workflows/partd-plots.yml"]
+    paths: ["partd/analyze.py", "partd/plot.py", "partd/metrics.py", "partd/split_votes.py", "results/partd/**", ".github/workflows/partd-plots.yml"]
 
 jobs:
   plot:
@@ -21,9 +21,11 @@ jobs:
         run: python partd/analyze.py results/partd --out out
       - name: Figures
         run: python partd/plot.py results/partd --out out/plots
+      - name: Split-vote timeout pairs
+        run: python partd/split_votes.py results/partd > out/split_votes.csv
       - name: Compare with the committed summaries
         run: |
-          for f in election_summary.csv partition_summary.csv trials.csv; do
+          for f in election_summary.csv partition_summary.csv trials.csv split_votes.csv; do
             if [ -f "results/partd/$f" ] && cmp -s "out/$f" "results/partd/$f"; then echo "same      results/partd/$f"; else echo "DIFFERENT results/partd/$f"; fi
           done
       - uses: actions/upload-artifact@v4
