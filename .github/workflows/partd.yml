@@ -1,0 +1,102 @@
+name: partd
+
+# Part D: Raft (etcd) under network faults. Manual only: a full grid is about half an hour on
+# ten runners, and each run's data gets committed under results/partd/run-<run id>/ by hand.
+on:
+  workflow_dispatch:
+    inputs:
+      reps:
+        description: repetitions per configuration
+        default: "5"
+      delays:
+        description: one-way delay between members, ms (comma list)
+        default: "0,10,50,100"
+      losses:
+        description: packet loss per direction between members, % (comma list)
+        default: "0,1,5,10"
+      grid:
+        description: "cross (every delay x every loss) or axes (delay sweep at 0% + loss sweep at 0 ms)"
+        default: cross
+      partition_reps:
+        description: repetitions per partition variant
+        default: "10"
+
+env:
+  ETCD_VERSION: v3.5.35
+
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest==8.3.3
+      - run: python -m pytest -v tests/test_partd_metrics.py
+
+  measure:
+    needs: unit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { exp: election, members: 3, timeouts: default, faults: kill }
+          - { exp: election, members: 3, timeouts: default, faults: isolate }
+          - { exp: election, members: 3, timeouts: tuned, faults: kill }
+          - { exp: election, members: 3, timeouts: tuned, faults: isolate }
+          - { exp: election, members: 5, timeouts: default, faults: kill }
+          - { exp: election, members: 5, timeouts: default, faults: isolate }
+          - { exp: election, members: 5, timeouts: tuned, faults: kill }
+          - { exp: election, members: 5, timeouts: tuned, faults: isolate }
+          - { exp: partition, members: 3, timeouts: default, faults: "leader-minority,leader-majority" }
+          - { exp: partition, members: 5, timeouts: default, faults: "leader-minority,leader-majority" }
+    env:
+      OUT: /tmp/partd
+      JOB: ${{ matrix.exp }}-n${{ matrix.members }}-${{ matrix.timeouts }}-${{ matrix.exp == 'partition' && 'split' || matrix.faults }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install etcd (official release, checksum verified)
+        run: |
+          cd "$RUNNER_TEMP"
+          base=https://github.com/etcd-io/etcd/releases/download/$ETCD_VERSION
+          curl -sSfLO "$base/etcd-$ETCD_VERSION-linux-amd64.tar.gz"
+          curl -sSfLO "$base/SHA256SUMS"
+          grep " etcd-$ETCD_VERSION-linux-amd64.tar.gz\$" SHA256SUMS | sha256sum -c -
+          tar xzf "etcd-$ETCD_VERSION-linux-amd64.tar.gz"
+          sudo install -m 755 "etcd-$ETCD_VERSION-linux-amd64/etcd" "etcd-$ETCD_VERSION-linux-amd64/etcdctl" /usr/local/bin/
+      - name: Check the runner
+        run: |
+          mkdir -p "$OUT/$JOB"
+          sh scripts/check_partd.sh /usr/local/bin 2>&1 | tee "$OUT/$JOB/env-check.txt"
+          exit "${PIPESTATUS[0]}"
+        shell: bash
+      - name: Run
+        run: |
+          if [ "${{ matrix.exp }}" = election ]; then
+            set -- --delays "${{ inputs.delays }}" --losses "${{ inputs.losses }}" --grid "${{ inputs.grid }}" --reps "${{ inputs.reps }}"
+          else
+            set -- --delays 0 --losses 0 --reps "${{ inputs.partition_reps }}" --window 10 --post 6
+          fi
+          sudo python3 partd/raft_faults.py --exp ${{ matrix.exp }} --members ${{ matrix.members }} \
+            --timeouts ${{ matrix.timeouts }} --faults "${{ matrix.faults }}" --out "$OUT/$JOB" "$@"
+      - name: Separate the etcd logs from the results
+        if: always()
+        run: |
+          sudo chown -R "$(id -u)" "$OUT"
+          mkdir -p "$OUT-logs"
+          [ -d "$OUT/$JOB/logs" ] && mv "$OUT/$JOB/logs" "$OUT-logs/$JOB" || true
+          ls "$OUT/$JOB" | head; ls "$OUT/$JOB" | wc -l
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: partd-${{ env.JOB }}
+          path: /tmp/partd
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: partd-logs-${{ env.JOB }}
+          path: /tmp/partd-logs
+          retention-days: 30
