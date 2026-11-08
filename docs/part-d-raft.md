@@ -64,3 +64,39 @@ What this shows:
 - **With 5 members, delay and loss add modestly.** At 100 ms one-way: 1.53 s [1.4–3.62] with the defaults, 1.02 s [0.933–2.76] tuned. At 10% loss and no delay: 1.31 s and 0.608 s.
 - **With 3 members, the tuned pair backfires at 100 ms.** A killed leader took 2.31 s [0.97–4.35] tuned against 1.85 s [1.56–5.13] with the defaults, and the median tuned trial needed 4 elections against 1. With two survivors, each needs the other's vote. A survivor becomes a candidate one round trip (200 ms) after its timer fires, once its pre-vote is granted. If the other survivor's timer fires less than one one-way delay (100 ms) later, its own pre-vote request arrives before the first has become a candidate and is granted too. Both then become candidates in the same term, each votes for itself, and the round is lost; each lost round costs another randomized timeout. etcd draws a member's election timeout from [timeout, 2 × timeout) in heartbeat ticks (`raft/raft.go`, line 1713 at v3.5.35), so the tuned pair picks one of ten values from 500 to 950 ms, against 1,000 to 1,900 ms for the defaults. In one trial (3 members, tuned, 100 ms, repetition 1 of [run 42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571)) the two survivors became candidates 94–95 ms apart in each of the first two rounds and only the fifth election produced a leader, at 2.83 s. Across the whole grid (16 delay × loss cells, killed and isolated), this is the only one of the 32 three-member cells where the tuned median is slower. With 5 members the tuned median is also slower in exactly one cell: killed leader, 100 ms and 10% loss, 2.26 s against 1.82 s (`election_summary.csv`; runs [42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571), [42454644849](https://github.com/zbs-ops/research-network-lab/actions/runs/42454644849)). Why 5 members suffer less from split votes wasn't measured.
 - **One 3-member trial at only 10 ms needed 25 elections (9.08 s).** That's the largest value in the 10 ms tuned cell, and it isn't explained; see open question 1.
+
+## 2. Writes through the fault
+
+The client keeps writing at 50 writes/s through a follower that stays healthy. "Success" is the share of the writes sent in the 8 s after the kill that were acknowledged. "Gap" is the longest time with no acknowledgement at all, which is what an application would see as the outage. Latency is for writes before the fault with the default timeouts. It counts only writes that couldn't still be in flight when the fault hit (see "What broke"), so in run 42452414571 it rests on 1 s of writes per trial and in run 42454644849 on 6 s.
+
+**3 members, leader killed.** Success: share of the writes sent in the 8 s after the kill that were acked. Gap: longest time with no ack, in seconds. Latency: writes before the fault, default timeouts, ms. Median [min–max] over trials. Runs: [42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571), [42454644849](https://github.com/zbs-ops/research-network-lab/actions/runs/42454644849)
+
+| one-way delay, loss | success, default | gap, default | success, tuned | gap, tuned | p50 latency | p99 latency |
+|---|---|---|---|---|---|---|
+| 0 ms, 0% | 0.87 [0.782-0.887] | 1.08 [0.938-1.78] | 0.919 [0.905-0.935] | 0.69 [0.56-0.8] | 1.45 [1.4-1.5] | 1.77 [1.7-2.75] |
+| 10 ms, 0% | 0.854 [0.792-0.877] | 1.22 [1.02-1.71] | 0.916 [0.11-0.938] | 0.736 [0.559-9.12] | 42 [42-42] | 42 [42-43] |
+| 50 ms, 0% | 0.804 [0.752-0.835] | 1.85 [1.59-3.94] | 0.907 [0.877-0.935] | 0.987 [0.79-2.05] | 202 [202-202] | 202 [202-202] |
+| 100 ms, 0% | 0.816 [0.54-0.855] | 2.16 [1.75-5.55] | 0.863 [0.657-0.93] | 2.67 [1.07-4.65] | 402 [402-402] | 408 [402-432] |
+| 0 ms, 1% | 0.839 [0.81-0.89] | 1.33 [0.978-1.56] | 0.925 [0.892-0.945] | 0.639 [0.48-0.912] | 1.5 [1.4-1.5] | 3 [2-21] |
+| 0 ms, 5% | 0.839 [0.785-0.882] | 1.5 [1.02-2.3] | 0.917 [0.897-0.945] | 1.08 [0.648-1.74] | 2 [2-953] | 376 [154-1444] |
+| 0 ms, 10% | 0.806 [0.46-0.885] | 2 [1.45-4.49] | 0.906 [0.805-0.94] | 1.67 [0.8-3.17] | 90 [5-469] | 652 [160-1961] |
+
+**5 members, leader killed.** Success: share of the writes sent in the 8 s after the kill that were acked. Gap: longest time with no ack, in seconds. Latency: writes before the fault, default timeouts, ms. Median [min–max] over trials. Runs: [42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571), [42454644849](https://github.com/zbs-ops/research-network-lab/actions/runs/42454644849)
+
+| one-way delay, loss | success, default | gap, default | success, tuned | gap, tuned | p50 latency | p99 latency |
+|---|---|---|---|---|---|---|
+| 0 ms, 0% | 0.873 [0.83-0.885] | 1.15 [0.999-1.4] | 0.939 [0.927-0.945] | 0.53 [0.48-0.619] | 1.65 [1.2-1.9] | 2.27 [1.55-3.3] |
+| 10 ms, 0% | 0.854 [0.82-0.875] | 1.22 [1.05-1.5] | 0.931 [0.912-0.94] | 0.611 [0.552-0.761] | 42 [41-42] | 42 [42-43] |
+| 50 ms, 0% | 0.851 [0.805-0.882] | 1.41 [1.21-1.72] | 0.916 [0.882-0.935] | 0.87 [0.792-1.1] | 202 [201-202] | 202 [202-203] |
+| 100 ms, 0% | 0.834 [0.735-0.875] | 1.69 [1.52-4.03] | 0.903 [0.855-0.932] | 1.23 [1.11-3.08] | 402 [402-402] | 421 [404-442] |
+| 0 ms, 1% | 0.874 [0.83-0.89] | 1.05 [0.933-1.4] | 0.935 [0.91-0.945] | 0.559 [0.479-0.759] | 1.7 [1.2-1.9] | 17 [3-147] |
+| 0 ms, 5% | 0.856 [0.805-0.873] | 1.18 [0.932-1.6] | 0.931 [0.91-0.948] | 0.669 [0.519-1.39] | 2 [1-115] | 212 [32-1383] |
+| 0 ms, 10% | 0.854 [0.66-0.877] | 1.35 [1.26-3.1] | 0.925 [0.757-0.94] | 1.43 [0.684-3.09] | 133 [9-1003] | 1036 [199-1470] |
+
+What this shows:
+
+- **The outage is the election, plus a little.** With no added delay, 3 members and the defaults, the longest gap was 1.08 s [0.938–1.78] against an election time of 1.05 s, and 87% [78–89%] of the writes in the 8 s after the kill were acknowledged. The tuned pair cut the gap to 0.69 s [0.56–0.8].
+- **A write through a follower costs four one-way delays.** The p50 was 42, 202 and 402 ms at 10, 50 and 100 ms one-way, with both cluster sizes. That fits the path: follower to leader, leader to the other members and back (the commit), then leader to the follower, which answers once it has applied the entry.
+- **Loss hurts latency long before it hurts elections.** At 1% loss the p99 was 3 ms [2–21] with 3 members and 17 ms [3–147] with 5. At 10% loss, with no fault yet, the p50 was 90 ms [5–469] (3 members) and the p99 652 ms [160–1961]. Raft's traffic between members runs over TCP, so a lost packet on the commit path most likely waits for a TCP retransmission; that wasn't traced here.
+- **A new leader doesn't always last.** In 25 of the 1,280 election trials, the leader elected after the fault lost its leadership again within the 8 s window. All 25 had 5% or 10% loss and 23 used the tuned pair. Two trials changed leader with no fault at all, during the writes before it: both tuned, both 10% loss (one per run; `trials.csv`, column `leader_changes_before_fault`). The longest gap of any trial, 11.8 s, is the one whose read-back failed (3 members, tuned, 100 ms, 10% loss; see "What broke"): its new leader stepped down 0.5 s after being elected.
+- **At 100 ms with 3 members the picture is mixed.** The tuned pair acknowledged more of the writes, 86% [66–93%] against 82% [54–86%], but its median gap was longer, 2.67 s [1.07–4.65] against 2.16 s [1.75–5.55], which matches the split votes in section 1.
