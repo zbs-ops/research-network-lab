@@ -86,7 +86,9 @@ class Cluster:
             if all(sts.values()):
                 for i, s in sts.items():
                     self.ids[i] = format(int(s["header"]["member_id"]), "x")
-                leaders = {s["leader"] for s in sts.values()}
+                # etcd's JSON gateway leaves out zero-valued fields, so a member with no leader
+                # has no "leader" key at all (seen right after a heal in run 42452213957).
+                leaders = {s.get("leader", "0") for s in sts.values()}
                 if len(leaders) == 1 and leaders != {"0"}:
                     lid = format(int(leaders.pop()), "x")
                     by_id = {v: k for k, v in self.ids.items()}
