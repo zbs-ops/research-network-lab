@@ -79,8 +79,13 @@ def recompute(rec: dict) -> dict:
             th = rec["actions"]["heal"]["t_done"]
             r["first_ack_after_heal_s"] = metrics.first_ack_after(ws, th)
             r["after_heal_success"] = metrics.write_stats(ws, th).get("success_rate")
-            r["acks_during_fault"] = metrics.acks_completed(ws, tf, th)
-            r["fault_window_s"] = round(th - tf, 6)
+            # [fault applied, heal started): the cut is complete only in there. The heal flushes
+            # one namespace at a time, and in run 42452414571 queued minority writes were acked
+            # between the first and the last flush.
+            hs = rec["actions"]["heal"]["t_start"]
+            r["acks_during_fault"] = metrics.acks_completed(ws, tf, hs)
+            r["fault_window_s"] = round(hs - tf, 6)
+            r["heal_apply_s"] = round(th - hs, 6)
         rows.append(r)
     return rows
 

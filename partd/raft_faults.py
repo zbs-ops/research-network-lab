@@ -194,7 +194,9 @@ def trial(exp: str, n: int, tmo: str, fault: str, delay, loss, rep: int, out: Pa
             th = rec["actions"]["heal"]["t_done"]
             rec["stats"][p]["after_heal"] = metrics.write_stats(ws, th)
             rec["stats"][p]["first_ack_after_heal_s"] = metrics.first_ack_after(ws, th)
-            rec["stats"][p]["acks_during_fault"] = metrics.acks_completed(ws, tf, th)
+            # Only while the cut is complete: the heal flushes one namespace at a time (38-96 ms
+            # in run 42452414571), and acks can arrive before the last flush is done.
+            rec["stats"][p]["acks_during_fault"] = metrics.acks_completed(ws, tf, rec["actions"]["heal"]["t_start"])
     return rec
 
 
