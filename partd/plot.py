@@ -118,7 +118,8 @@ def heatmaps(rows, out: Path):
 def timeline(recs, out: Path):
     picks = {}
     for rec in sorted(recs, key=lambda r: (r.get("rep", 0), r["name"])):
-        if rec.get("exp") == "partition" and rec.get("status") == "ok":
+        if rec.get("exp") == "partition" and rec.get("status") == "ok" and rec.get("window_s") == 10 \
+                and rec.get("delay_ms") == 0:
             picks.setdefault((rec["members"], rec["fault"]), rec)
     if not picks:
         return
@@ -142,7 +143,8 @@ def timeline(recs, out: Path):
         ax.set_ylim(-0.6, 1.6)
         ax.grid(False)
         old = "old leader in minority" if k[1] == "leader-minority" else "old leader in majority"
-        ax.set_title(f"{k[0]} members, {old} (trial {rec['name']})", color=INK, fontsize=8, loc="left")
+        ax.set_title(f"{k[0]} members, {old} (run {rec['_run']}, trial {rec['name']})", color=INK, fontsize=8,
+                     loc="left")
     axes[0, 0].legend(frameon=False, fontsize=7, loc="upper right", ncol=2)
     axes[-1, 0].set_xlabel("time since the client started (s); shaded: partitioned")
     fig.tight_layout()
