@@ -1,0 +1,42 @@
+== date (UTC)
+2026-11-08T05:52:10Z
+== kernel
+7.0.0-1017-azure
+== cpus
+4
+== memory (MB)
+Mem:           15983         983       14276          42        1052       15000
+OK    root via sudo
+OK    NET_ADMIN (CapEff of a root shell)
+      CapEff:	000001ffffffffff
+      created and deleted a link
+OK    tc (iproute2)
+      tc utility, iproute2-6.1.0, libbpf 1.3.0
+OK    iptables
+      iptables v1.8.10 (nf_tables)
+OK    network namespaces
+      lo               UNKNOWN        00:00:00:00:00:00 <LOOPBACK,UP,LOWER_UP> 
+OK    bridge + veth into a namespace
+      PING 10.99.0.2 (10.99.0.2) 56(84) bytes of data.
+      64 bytes from 10.99.0.2: icmp_seq=1 ttl=64 time=0.094 ms
+      64 bytes from 10.99.0.2: icmp_seq=2 ttl=64 time=0.056 ms
+      
+      --- 10.99.0.2 ping statistics ---
+      2 packets transmitted, 2 received, 0% packet loss, time 1017ms
+      rtt min/avg/max/mdev = 0.056/0.075/0.094/0.019 ms
+OK    netem delay+loss inside a namespace
+      qdisc netem 8001: root refcnt 2 limit 1000 delay 50ms loss 5%
+OK    iptables DROP rules inside a namespace
+      -P INPUT ACCEPT
+      -A INPUT -s 10.99.0.9/32 -j DROP
+      same rule in the root namespace: 0 (must be 0)
+OK    etcd binary
+      etcd Version: 3.5.35
+      Git SHA: b0dc937
+      Go Version: go1.26.10
+      Go OS/Arch: linux/amd64
+OK    etcdctl binary
+      etcdctl version: 3.5.35
+      API version: 3.5
+OK    python3
+      Python 3.12.3
