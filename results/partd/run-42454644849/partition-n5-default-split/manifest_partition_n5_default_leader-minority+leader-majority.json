@@ -1,0 +1,43 @@
+{
+ "argv": {
+  "exp": "partition",
+  "members": 5,
+  "timeouts": "default",
+  "faults": "leader-minority,leader-majority",
+  "delays": "0,50",
+  "losses": "0",
+  "grid": "cross",
+  "reps": 10,
+  "rate": 50,
+  "client_timeout": 2.0,
+  "pre": 8.0,
+  "window": 10.0,
+  "post": 6.0,
+  "form_timeout": 60.0,
+  "etcd": "/usr/local/bin/etcd",
+  "out": "/tmp/partd/partition-n5-default-split",
+  "local": false,
+  "duration": 24.0
+ },
+ "etcd": "etcd Version: 3.5.35\nGit SHA: b0dc937\nGo Version: go1.26.10\nGo OS/Arch: linux/amd64",
+ "kernel": "7.0.0-1017-azure",
+ "cells": [
+  [
+   0,
+   0
+  ],
+  [
+   50,
+   0
+  ]
+ ],
+ "started": "2026-11-08T06:25:12Z",
+ "net_setup": {
+  "bridge-nf-call-iptables before": "not loaded",
+  "members": 5
+ },
+ "finished": "2026-11-08T06:44:52Z",
+ "status_counts": {
+  "ok": 40
+ }
+}
