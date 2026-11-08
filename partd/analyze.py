@@ -167,7 +167,7 @@ def main() -> None:
                     ("all_p50_ms", "all_p50_ms"), ("all_p99_ms", "all_p99_ms")])
     write_csv(a.out / "election_summary.csv", el)
     pa = summarise([r for r in rows if r["exp"] == "partition"],
-                   ("members", "timeouts", "fault", "side"),
+                   ("members", "timeouts", "delay_ms", "fault", "side"),
                    [("election_s", "election_s"), ("acks_during_fault", "acks_during_fault"),
                     ("fault_success", "fault_success"),
                     ("longest_gap_s", "longest_gap_s"), ("first_ack_after_fault_s", "first_ack_after_fault_s"),
