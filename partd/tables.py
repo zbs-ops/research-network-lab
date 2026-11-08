@@ -100,6 +100,8 @@ def write_tables(el):
 def partition_table(pa):
     rows = []
     for r in pa:
+        if float(r.get("window_s") or 10) != 10:
+            continue
         delay = r.get("delay_ms", "0") or "0"
         rows.append([r["members"], f"{int(float(delay))} ms", "minority" if r["fault"] == "leader-minority" else "majority",
                      r["side"], r["ok"], cell(r, "acks_during_fault", n=False), cell(r, "longest_gap_s", n=False),
@@ -108,13 +110,25 @@ def partition_table(pa):
                   "longest gap (s)", "first ack after heal (s)", "new leader after (s)", "runs"], rows)
 
 
+def duration_table(pa):
+    """Recovery after the heal vs partition length: old leader in the majority, writer on the minority."""
+    rows = []
+    sel = [r for r in pa if r["fault"] == "leader-majority" and r["side"] == "minority"
+           and float(r.get("delay_ms") or 0) == 0]
+    for r in sorted(sel, key=lambda r: (int(r["members"]), float(r["window_s"]))):
+        rows.append([r["members"], f"{float(r['window_s']):g} s", r["ok"], cell(r, "acks_during_fault", n=False),
+                     cell(r, "first_ack_after_heal_s", n=False), links(r["runs"])])
+    return table(["members", "partition length", "trials", "acks during the partition",
+                  "first ack after heal (s)", "runs"], rows)
+
+
 def safety_line(el, pa):
     acked = sum(int(r["acked"]) for r in el)
     lost = sum(int(r["lost"]) + int(r["wrong"]) for r in el)
-    # partition rows repeat each trial's totals once per side; count each (members, fault, delay) once
+    # partition rows repeat each trial's totals once per side; count each group once
     seen, packed, plost = set(), 0, 0
     for r in pa:
-        k = (r["members"], r["fault"], r.get("delay_ms"))
+        k = (r["members"], r["fault"], r.get("delay_ms"), r.get("window_s"))
         if k not in seen:
             seen.add(k)
             packed += int(r["acked"])
@@ -137,6 +151,8 @@ def main() -> None:
     print(write_tables(el))
     print("## Partitions\n")
     print(partition_table(pa))
+    print("\n## Partition length\n")
+    print(duration_table(pa))
     print("\n## Safety\n")
     print(safety_line(el, pa))
 

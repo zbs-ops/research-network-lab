@@ -46,7 +46,7 @@ def load(dirs: list[Path]) -> list[dict]:
 def recompute(rec: dict) -> dict:
     """One flat row per trial (per write stream for partition trials)."""
     base = {k: rec.get(k) for k in ("exp", "members", "timeouts", "heartbeat_ms", "election_ms", "fault",
-                                    "delay_ms", "loss_pct", "rep", "status")}
+                                    "delay_ms", "loss_pct", "window_s", "rep", "status")}
     base["run"] = rec["_run"]
     if rec.get("status") not in USABLE:
         return [base]
@@ -167,7 +167,7 @@ def main() -> None:
                     ("all_p50_ms", "all_p50_ms"), ("all_p99_ms", "all_p99_ms")])
     write_csv(a.out / "election_summary.csv", el)
     pa = summarise([r for r in rows if r["exp"] == "partition"],
-                   ("members", "timeouts", "delay_ms", "fault", "side"),
+                   ("members", "timeouts", "delay_ms", "window_s", "fault", "side"),
                    [("election_s", "election_s"), ("acks_during_fault", "acks_during_fault"),
                     ("fault_success", "fault_success"),
                     ("longest_gap_s", "longest_gap_s"), ("first_ack_after_fault_s", "first_ack_after_fault_s"),
