@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "partd"))
 
 from metrics import (  # noqa: E402
-    check_readback, election_after, first_ack_after, leader_changes, parse_raft_events, parse_ts,
+    acks_completed, check_readback, election_after, first_ack_after, leader_changes, parse_raft_events, parse_ts,
     percentile, write_stats,
 )
 
@@ -99,6 +99,12 @@ def test_write_stats_gap_and_rates():
 def test_write_stats_no_acks_gap_is_whole_window():
     w = [[i, i / 10, i / 10 + 2, "timeout"] for i in range(5)]
     assert abs(write_stats(w)["longest_gap_s"] - 0.4) < 1e-9
+
+
+def test_acks_completed_counts_by_arrival_time():
+    # sent during a partition (1-2 s) but acknowledged after the heal at 2 s: not counted
+    w = [[0, 0.5, 0.51, "ok"], [1, 1.5, 2.1, "ok"], [2, 1.6, 1.7, "ok"], [3, 1.7, 1.75, "timeout"]]
+    assert acks_completed(w, 1.0, 2.0) == 1
 
 
 def test_first_ack_after():

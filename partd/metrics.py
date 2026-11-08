@@ -137,6 +137,16 @@ def write_stats(writes: list[list], t_from: float | None = None, t_to: float | N
     }
 
 
+def acks_completed(writes: list[list], t_from: float, t_to: float) -> int:
+    """Acks that *arrived* in [t_from, t_to), whenever the write was sent.
+
+    write_stats groups writes by send time, so a write sent just before a heal and acknowledged
+    just after it counts as a success there. To ask whether a side accepted writes while it was
+    partitioned, count the acks that arrived during the partition instead.
+    """
+    return sum(1 for w in writes if w[3] == "ok" and t_from <= w[2] < t_to)
+
+
 def first_ack_after(writes: list[list], t: float) -> float | None:
     """Delay from t to the first ack of a write sent at or after t."""
     acks = [w[2] for w in writes if w[3] == "ok" and w[1] >= t]
