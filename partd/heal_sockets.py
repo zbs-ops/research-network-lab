@@ -6,8 +6,9 @@ find the connection from the current leader to each minority member with the mos
 and compare when that timer fires with when the minority writer got its first ack after the heal.
 
 With --logs (the run's partd-logs-* artifact, unpacked), also reports when the leader's etcd
-logged its first "lost TCP streaming connection" after the heal: etcd giving up on a stuck
-stream and dialling a new one is the other way out.
+logged its first "lost TCP streaming connection" for the MsgApp stream after the cut, measured
+from the cut: etcd giving up on a stuck stream (and later dialling a new one) is the other way
+out. Whether that happened before or after the heal is the reset_before_heal column.
 
   python3 partd/heal_sockets.py results/partd/run-<id> [--logs <dir>] > results/partd/run-<id>/heal_sockets.csv
 """
@@ -39,14 +40,14 @@ def seconds(val: str, unit: str | None) -> float:
 
 
 def stream_lost_after(logdir: Path | None, d: dict, member: int, t_from: float) -> float | None:
-    """Seconds from t_from to member's first 'lost TCP streaming connection' log line."""
+    """Seconds from t_from to member's first 'lost TCP streaming connection' line for the MsgApp stream."""
     if logdir is None:
         return None
     f = next(logdir.rglob(f"{d['name']}/m{member}.log"), None)
     if f is None:
         return None
     for line in f.read_text(errors="replace").splitlines():
-        if "lost TCP streaming connection" in line:
+        if "lost TCP streaming connection" in line and "MsgApp" in line:
             t = parse_ts(json.loads(line)["ts"]) - d["t0_epoch"]
             if t > t_from:
                 return round(t - t_from, 3)
@@ -68,6 +69,8 @@ def main() -> None:
             continue
         leader_m = d["after"]["leader"] if d.get("after") else None
         snap_t, heal_t = a["sockets_before_heal"]["t_start"], a["heal"]["t_start"]
+        cut_t = a["fault"]["t_done"]
+        reset = stream_lost_after(logdir, d, leader_m, cut_t)
         socks = a["sockets_before_heal"]["applied"].get(str(leader_m), [])
         for m in d["minority"]:
             best = None
@@ -82,10 +85,12 @@ def main() -> None:
                 continue
             fires = round(best[2] - (heal_t - snap_t), 3)  # seconds after the heal started
             rows.append({
-                "trial": d["name"], "delay_ms": d["delay_ms"], "leader": leader_m, "minority_member": m,
+                "trial": d["name"], "delay_ms": d["delay_ms"], "partition_s": round(heal_t - cut_t, 3),
+                "leader": leader_m, "minority_member": m,
                 "send_q_bytes": best[0], "timer": best[1], "backoff": best[3],
                 "timer_fires_after_heal_s": fires,
-                "leader_stream_lost_after_heal_s": stream_lost_after(logdir, d, leader_m, heal_t),
+                "leader_msgapp_reset_after_cut_s": reset,
+                "reset_before_heal": None if reset is None else reset < heal_t - cut_t,
                 "first_minority_ack_after_heal_s": d["stats"]["min"]["first_ack_after_heal_s"],
             })
     w = csv.DictWriter(sys.stdout, fieldnames=list(rows[0]) if rows else ["trial"])
