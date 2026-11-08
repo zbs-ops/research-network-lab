@@ -79,8 +79,8 @@ def heatmaps(rows, out: Path):
         return
     for fault in sorted({r["fault"] for r in ok}):
         panels = sorted({(r["members"], r["timeouts"]) for r in ok if r["fault"] == fault})
-        fig, axes = plt.subplots(1, len(panels), figsize=(3.3 * len(panels), 3.2), squeeze=False)
-        for ax, (n, tmo) in zip(axes[0], panels):
+        grids = {}
+        for n, tmo in panels:
             grid = []
             for lo in losses:
                 row = []
@@ -90,8 +90,13 @@ def heatmaps(rows, out: Path):
                          and r["election_s"] is not None]
                     row.append(statistics.median(v) if v else float("nan"))
                 grid.append(row)
-            im = ax.imshow(grid, cmap="Blues", origin="lower", aspect="auto", vmin=0)
-            vmax = max((x for r in grid for x in r if x == x), default=1)
+            grids[(n, tmo)] = grid
+        # One colour scale for every panel, so the same shade means the same time everywhere.
+        vmax = max((x for g in grids.values() for r in g for x in r if x == x), default=1)
+        fig, axes = plt.subplots(1, len(panels), figsize=(3.1 * len(panels) + 0.8, 3.2), squeeze=False)
+        for ax, (n, tmo) in zip(axes[0], panels):
+            grid = grids[(n, tmo)]
+            im = ax.imshow(grid, cmap="Blues", origin="lower", aspect="auto", vmin=0, vmax=vmax)
             for i, row in enumerate(grid):
                 for j, v in enumerate(row):
                     if v == v:  # NaN (no trials in that cell) stays blank
@@ -102,12 +107,11 @@ def heatmaps(rows, out: Path):
             ax.set_xlabel("one-way delay (ms)")
             ax.set_title(f"{n} members, {tmo}", color=INK)
             ax.grid(False)
-            fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+        fig.colorbar(im, ax=list(axes[0]), fraction=0.02, pad=0.02)
         axes[0][0].set_ylabel("loss per direction (%)")
         fig.suptitle(f"median time to a new leader (s), leader {'killed' if fault == 'kill' else 'isolated'}",
-                     color=INK)
-        fig.tight_layout()
-        fig.savefig(out / f"election_heatmap_{fault}.png", dpi=150)
+                     color=INK, y=1.06)
+        fig.savefig(out / f"election_heatmap_{fault}.png", dpi=150, bbox_inches="tight")
         plt.close(fig)
 
 
