@@ -5,6 +5,7 @@ A research-network engineer's lab in one repo, on free tools. Every number is tr
 - **Part A, fabric as code:** a leaf-spine fabric (Containerlab + FRRouting, eBGP unnumbered, BFD, ECMP), tests that check routing on every push, and four planned failures with a written diagnosis for each. [docs/part-a-failures.md](docs/part-a-failures.md)
 - **Part B, long-distance transfers:** how one TCP transfer behaves over an emulated 1 Gbit/s path at 10, 120 and 250 ms with packet loss. CUBIC vs BBR, buffer tuning, MTU 1500 vs 9000, single vs parallel streams, and why 4 BBR streams sometimes stall, traced through kernel TCP counters. [docs/part-b-results.md](docs/part-b-results.md)
 - **Part C, monitoring:** a Prometheus exporter, four alert rules and a Grafana dashboard, tested by breaking the fabric on purpose. [docs/part-c-monitoring.md](docs/part-c-monitoring.md)
+- **Part D, Raft under network faults:** etcd clusters of 3 and 5 members, one network namespace each, with the leader killed or cut off under emulated delay and loss, and minority/majority partitions. How long there's no leader, what a steady writer sees, which side keeps working, and a read-back of every acknowledged write. [docs/part-d-raft.md](docs/part-d-raft.md)
 
 The write-up: [docs/article.md](docs/article.md). Japanese summary: [docs/summary-ja.md](docs/summary-ja.md).
 
@@ -18,12 +19,17 @@ The write-up: [docs/article.md](docs/article.md). Japanese summary: [docs/summar
 | 250 ms, no loss, one stream | default buffers 81 Mbit/s vs 256 MB ceiling 791 | same |
 | 4 BBR streams stalling at 250 ms | caused by receiver TCP memory pressure; 4× `tcp_mem` took stalls from 3/12 to 0/12 (all probe runs: 10/34 vs 0/12, one-sided Fisher p = 0.03) | [41390596751](https://github.com/zbs-ops/research-network-lab/actions/runs/41390596751) |
 | BGP up, routes gone (policy mistake) | PrefixMissing alert in 3.5–5.5 s; BGP alerts silent, in all 11 runs | 11 monitoring runs: [results/monitoring/all-runs.json](results/monitoring/all-runs.json) |
+| etcd leader killed, 3 members, no added delay | new leader in 1.05 s with etcd's default timeouts, 0.66 s with 50/500 ms (median of 10) | [42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571), [42454644849](https://github.com/zbs-ops/research-network-lab/actions/runs/42454644849) |
+| Same, 100 ms one-way between members | the faster timeouts lose: 2.31 s vs 1.85 s, median 4 elections vs 1 (split votes between the two survivors) | same |
+| Partitions, 3 and 5 members | the minority acknowledged 0 writes in all 120 trials; 1,231,115 acknowledged writes across Part D, 0 lost | same |
+| Follower cut off for 10 s, then healed (3 members, 0 ms) | 3.07 s before it serves writes again, set by TCP retransmission backoff on the old connection, not by Raft | same |
 
 ## What this shows for the role
 
 - **Routing:** an eBGP leaf-spine fabric in FRRouting (unnumbered sessions, BFD, ECMP), with configs in `configs/` and tests on every push that check sessions, next-hop counts and host reachability.
 - **Failure handling:** four injected failures, including a link that stays up while dropping everything and a route-policy mistake, each with the commands that diagnose it and timings from 22 CI runs.
 - **Monitoring:** a Prometheus exporter, four alert rules and a Grafana dashboard, tested by breaking the fabric. A prefix-presence alert catches the failure that session monitoring misses.
+- **Distributed control planes:** Raft (etcd) failover timed from etcd's own log against delay and loss, write availability through the fault, partition behaviour, and a seconds-long recovery after a partition heals traced to TCP backoff with `ss`.
 - **High-throughput data transfer:** TCP over emulated 10, 120 and 250 ms paths at 1 Gbit/s: congestion control, socket buffers, MTU and parallel streams, plus a BBR stall traced to kernel `tcp_mem` pressure and confirmed by an intervention.
 
 What it doesn't show: everything is emulated, each experiment on a single cloud VM. There are no hardware routers, real long-distance paths or production traffic here.
@@ -44,7 +50,7 @@ Every leaf links to both spines. BGP runs on unnumbered links (IPv6 link-local s
 
 ## Run it
 
-Everything runs in GitHub Actions (`.github/workflows/`). `fabric.yml`, `partb.yml` and `bbr-probe.yml` start by checking that the runner supports what the lab needs (`scripts/check_runner.sh`): Docker, a real netem qdisc, network namespaces, BBR, MTU 9000.
+Everything runs in GitHub Actions (`.github/workflows/`). `fabric.yml`, `partb.yml` and `bbr-probe.yml` start by checking that the runner supports what the lab needs (`scripts/check_runner.sh`): Docker, a real netem qdisc, network namespaces, BBR, MTU 9000. `partd.yml` runs `scripts/check_partd.sh` (namespaces, netem and iptables inside a namespace, the etcd binary) and commits its output with the data.
 
 | Workflow | When it runs | What it does |
 |---|---|---|
@@ -53,6 +59,8 @@ Everything runs in GitHub Actions (`.github/workflows/`). `fabric.yml`, `partb.y
 | `partb.yml` | changes under `partb/`, or manually | the transfer grid at 10, 120 and 250 ms (one job each), then the plots |
 | `bbr-probe.yml` | changes to the probe, or manually | the instrumented BBR stall probe, normal vs 4× `tcp_mem` side by side |
 | `partb-plots.yml` | changes to the Part B data or plot script, or manually | rebuilds Part B's summaries and figures from the committed CSVs |
+| `partd.yml` | manually | the Raft grid: 3 and 5 members, two timeout pairs, killed or isolated leader under delay and loss, plus partitions (ten runners, 30–40 minutes) |
+| `partd-plots.yml` | changes to the Part D data or analysis, or manually | rebuilds Part D's summaries and figures from the committed trial files |
 
 To rerun one, open the Actions tab, pick the workflow and use "Run workflow". GitHub deletes run logs after its retention period (90 days by default), so the run links will eventually stop showing logs; the data stays in `results/`.
 
