@@ -130,5 +130,28 @@ def heal(n: int) -> None:
         ns(i, "iptables", "-F", "OUTPUT")
 
 
+def sockets(i: int) -> list[str]:
+    """Member i's TCP connections to/from other members' peer port, with timers.
+
+    `ss -o` shows the retransmission timer as timer:(on,<time left>,<retransmits>), so a
+    connection that has been retransmitting into a partition shows how long it will wait
+    before trying again.
+    """
+    out = ns(i, "ss", "-tinoH", "state", "established", "( sport = :2380 or dport = :2380 )", check=False)
+    lines, cur = [], ""
+    for line in out.splitlines():
+        if line[:1].isspace():
+            cur += " " + line.strip()
+        else:
+            if cur:
+                lines.append(cur)
+            cur = line.strip()
+    if cur:
+        lines.append(cur)
+    keep = ("timer:", "rto:", "backoff:", "retrans:", "unacked:", "lastsnd:", "lastrcv:", "lastack:")
+    # first four columns: Recv-Q, Send-Q, local address, peer address
+    return [" ".join(ln.split()[:4] + [t for t in ln.split()[4:] if t.startswith(keep)]) for ln in lines]
+
+
 def rules(n: int) -> list[str]:
     return [f"rd{i}: " + " | ".join(ns(i, "iptables", "-S").split("\n")).strip(" |") for i in range(1, n + 1)]

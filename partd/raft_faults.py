@@ -90,6 +90,14 @@ async def run_trial_async(c, streams, actions, t0):
     return rec, res[1:]
 
 
+def heal_actions(n: int, t_heal: float) -> list:
+    """Heal at t_heal, with the members' peer TCP connections recorded just before and after."""
+    snap = lambda: {i: net.sockets(i) for i in range(1, n + 1)}  # noqa: E731
+    return [(t_heal - 0.15, "sockets_before_heal", snap),
+            (t_heal, "heal", lambda: (net.heal(n), "flushed")[1]),
+            (t_heal + 1.0, "sockets_after_heal_1s", snap)]
+
+
 def trial(exp: str, n: int, tmo: str, fault: str, delay, loss, rep: int, out: Path, local: bool) -> dict:
     hb, el = TIMEOUTS[tmo]
     name = f"{exp}_n{n}_{tmo}_{fault}_d{delay}_l{loss}_r{rep}"
@@ -129,7 +137,7 @@ def trial(exp: str, n: int, tmo: str, fault: str, delay, loss, rep: int, out: Pa
                 actions.append((t_fault, "fault", lambda: (c.kill(L), f"SIGKILL m{L}")[1]))
             else:
                 actions.append((t_fault, "fault", lambda: net.isolate(n, L)))
-                actions.append((t_fault + ARGS.window, "heal", lambda: (net.heal(n), "flushed")[1]))
+                actions += heal_actions(n, t_fault + ARGS.window)
         else:  # partition
             m = (n - 1) // 2
             if fault == "leader-minority":
@@ -142,7 +150,7 @@ def trial(exp: str, n: int, tmo: str, fault: str, delay, loss, rep: int, out: Pa
             streams = [(min_target, "min"), (maj_target, "maj")]
             rec.update(minority=minority, majority=majority, write_targets={"min": min_target, "maj": maj_target})
             actions.append((t_fault, "fault", lambda: net.partition(n, minority, majority)))
-            actions.append((t_fault + ARGS.window, "heal", lambda: (net.heal(n), "flushed")[1]))
+            actions += heal_actions(n, t_fault + ARGS.window)
 
         t0 = time.time() + 0.2
         rec["t0_epoch"] = t0
