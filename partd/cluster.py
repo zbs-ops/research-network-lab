@@ -46,6 +46,7 @@ class Cluster:
 
     def start(self) -> None:
         self.logdir.mkdir(parents=True, exist_ok=True)
+        self.datadir.mkdir(parents=True, exist_ok=True)
         initial = ",".join(f"m{i}=http://{self.peer_ip(i)}:2380" for i in range(1, self.n + 1))
         for i in range(1, self.n + 1):
             cmd = [
