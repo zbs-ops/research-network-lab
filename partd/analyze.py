@@ -79,6 +79,8 @@ def recompute(rec: dict) -> dict:
             th = rec["actions"]["heal"]["t_done"]
             r["first_ack_after_heal_s"] = metrics.first_ack_after(ws, th)
             r["after_heal_success"] = metrics.write_stats(ws, th).get("success_rate")
+            r["acks_during_fault"] = metrics.acks_completed(ws, tf, th)
+            r["fault_window_s"] = round(th - tf, 6)
         rows.append(r)
     return rows
 
@@ -145,7 +147,8 @@ def main() -> None:
     write_csv(a.out / "election_summary.csv", el)
     pa = summarise([r for r in rows if r["exp"] == "partition"],
                    ("members", "timeouts", "fault", "side"),
-                   [("election_s", "election_s"), ("fault_success", "fault_success"),
+                   [("election_s", "election_s"), ("acks_during_fault", "acks_during_fault"),
+                    ("fault_success", "fault_success"),
                     ("longest_gap_s", "longest_gap_s"), ("first_ack_after_fault_s", "first_ack_after_fault_s"),
                     ("first_ack_after_heal_s", "first_ack_after_heal_s"), ("all_p50_ms", "all_p50_ms"),
                     ("all_p99_ms", "all_p99_ms")])
