@@ -81,7 +81,7 @@ The failure test rewrites `results/failures.json`. For Part C, follow the steps 
 
 ## How this was built
 
-I set the goal (a lab that shows the day-to-day work of a research-network engineer), the scope, and the rules: every number comes from a CI run that's linked next to it, check the environment before trusting it, and write down what broke. The building was done by Friday, an AI agent I run. Friday wrote the topology, the router configs, the tests, the measurement scripts and the write-ups, ran every experiment, and posted each phase's real output for me to review before the next phase started.
+I set the goal (a lab that shows the day-to-day work of a research-network engineer), the scope, and the rules: every number comes from a CI run that's linked next to it, check the environment before trusting it, and write down what broke. The building was done by Friday, an AI agent I run on Dock's cloud. Friday wrote the topology, the router configs, the tests, the measurement scripts and the write-ups, ran every experiment, and posted each phase's real output for me to review before the next phase started.
 
 **Where it runs.** The agent's machine has no Docker and no `tc`, and neither does my laptop. So every push builds the lab on a fresh GitHub Actions runner, which has root, Docker and the kernel's netem module. That's why "run it in CI" is the reproduction path, and why anyone can rerun a workflow to check the results.
 
@@ -97,6 +97,7 @@ I set the goal (a lab that shows the day-to-day work of a research-network engin
 - **Sender-side numbers lie with big buffers.** iperf3's per-second sender figures showed 2,234 Mbit/s on a 1 Gbit/s link: that's data written into a 256 MB socket buffer, not data delivered. Every reported number is the receiver's.
 - **An unexplained result became the most interesting finding.** 4 BBR streams at 250 ms sometimes stalled with zero loss. Instead of calling it noise, a probe traced it to the receiver's TCP memory pressure, then an intervention (4× `tcp_mem`) confirmed it. See Part B, section 5.
 - **The dashboard misreported events.** Up links showed red, one panel didn't render, and a 6.3 Mbit/s burst showed as about 400 kb/s, because Grafana assumed 15 s between points instead of the real 2 s. Each was caught in a CI screenshot and fixed, and the next run checked the fix.
+- **Part D counted the minority's writes at the wrong time.** In a partition, the cut-off side showed 19% of its writes succeeding, yet it went the whole 10 s without a single ack. Those writes were sent just before the heal and acknowledged just after it. Partition results now count acks by when they arrived, during the cut (which also excludes the 38–96 ms the heal itself takes), and the cut-off side's count is 0 in all 120 trials.
 - **A number written before it was checked.** A draft said the runner had "7 GB" of RAM. `free -m` says 7,932 MB, and the docs now say so.
 
 Two things stay unexplained and aren't used for any claim: three BBR tests in the first grid run with tens to hundreds of thousands of retransmits on single streams, which didn't recur in the second run, and netem's own drop counter, which reports drops in tests that had zero retransmits.
