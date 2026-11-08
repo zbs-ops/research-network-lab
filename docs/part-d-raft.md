@@ -24,3 +24,43 @@
 The summaries (`results/partd/election_summary.csv`, `partition_summary.csv`, `trials.csv`) and the figures are rebuilt from the committed trial files by `partd/analyze.py` and `partd/plot.py`; the `partd-plots` workflow does this in CI and checks the result matches what's committed. The tables below are generated from those CSVs by `partd/tables.py`.
 
 **Environment check.** Before measuring, each job runs `scripts/check_partd.sh` and its output is committed next to the data (`env-check.txt` in each job's directory). On every runner in both runs it found kernel `7.0.0-1017-azure`, 4 CPUs, 15,982–15,983 MB of RAM (`free -m`), a root shell with full capabilities (`CapEff: 000001ffffffffff`), `iproute2-6.1.0`, `iptables v1.8.10 (nf_tables)`, a working bridge + veth path into a namespace, a netem qdisc with delay and loss inside a namespace, an `iptables` rule in a namespace that doesn't appear in the root namespace, and `etcd Version: 3.5.35`.
+
+## 1. Time to a new leader
+
+Time from the fault to the first `became leader` by another member, in seconds, median [min–max] of 10 trials (5 per run). Rows are the delay sweep with no loss, then the loss sweep with no added delay; the full delay × loss grid is in `results/partd/election_summary.csv` and in the heatmaps below. "Elections needed" counts `became candidate` events up to the new leader (1 = the first election won).
+
+**3 members**, time to a new leader in seconds, median [min–max]. Runs: [42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571), [42454644849](https://github.com/zbs-ops/research-network-lab/actions/runs/42454644849)
+
+| one-way delay, loss | killed, default | killed, tuned | isolated, default | isolated, tuned | elections needed (killed: default / tuned) | trials per cell |
+|---|---|---|---|---|---|---|
+| 0 ms, 0% | 1.05 [0.91-1.74] | 0.66 [0.523-0.764] | 1.14 [0.988-1.48] | 0.613 [0.463-0.9] | 1 [1-1] / 1 [1-1] | 10 |
+| 10 ms, 0% | 1.19 [0.988-1.68] | 0.704 [0.528-9.08] | 1.29 [0.976-1.59] | 0.631 [0.534-1.13] | 1 [1-1] / 1 [1-25] | 10 |
+| 50 ms, 0% | 1.76 [1.48-3.78] | 0.926 [0.729-1.88] | 1.53 [1.17-1.93] | 0.911 [0.742-1.07] | 1 [1-3] / 1 [1-3] | 10 |
+| 100 ms, 0% | 1.85 [1.56-5.13] | 2.31 [0.97-4.35] | 1.71 [1.43-3.38] | 1.51 [0.956-3.62] | 1 [1-5] / 4 [1-7] | 10 |
+| 0 ms, 1% | 1.3 [0.943-1.53] | 0.611 [0.447-0.891] | 1.33 [0.928-1.72] | 0.593 [0.52-0.821] | 1 [1-1] / 1 [1-1] | 10 |
+| 0 ms, 5% | 1.3 [0.957-1.72] | 0.73 [0.553-0.932] | 1.34 [0.939-1.87] | 0.641 [0.521-0.845] | 1 [1-1] / 1 [1-1] | 10 |
+| 0 ms, 10% | 1.77 [1.04-5.25] | 0.715 [0.485-1.75] | 1.27 [0.976-2.11] | 0.695 [0.508-1.23] | 1 [1-3] / 1 [1-3] | 10 |
+
+**5 members**, time to a new leader in seconds, median [min–max]. Runs: [42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571), [42454644849](https://github.com/zbs-ops/research-network-lab/actions/runs/42454644849)
+
+| one-way delay, loss | killed, default | killed, tuned | isolated, default | isolated, tuned | elections needed (killed: default / tuned) | trials per cell |
+|---|---|---|---|---|---|---|
+| 0 ms, 0% | 1.12 [0.967-1.37] | 0.498 [0.439-0.588] | 1.08 [0.972-1.69] | 0.575 [0.47-0.671] | 1 [1-1] / 1 [1-1] | 10 |
+| 10 ms, 0% | 1.19 [1.02-1.47] | 0.583 [0.53-0.728] | 1.09 [0.952-1.31] | 0.562 [0.495-0.731] | 1 [1-2] / 1 [1-1] | 10 |
+| 50 ms, 0% | 1.3 [1.14-1.61] | 0.764 [0.691-0.992] | 1.27 [1.18-1.71] | 0.767 [0.69-1.4] | 1 [1-2] / 1 [1-2] | 10 |
+| 100 ms, 0% | 1.53 [1.4-3.62] | 1.02 [0.933-2.76] | 1.58 [1.46-1.92] | 1.1 [0.961-1.93] | 1.5 [1-5] / 1.5 [1-7] | 10 |
+| 0 ms, 1% | 1.02 [0.91-1.37] | 0.525 [0.444-0.722] | 1.05 [0.945-1.39] | 0.545 [0.462-0.764] | 1 [1-1] / 1 [1-1] | 10 |
+| 0 ms, 5% | 1.16 [1.03-1.57] | 0.552 [0.488-0.764] | 1.11 [0.961-1.39] | 0.547 [0.475-0.723] | 1 [1-1] / 1 [1-1] | 10 |
+| 0 ms, 10% | 1.31 [0.981-1.43] | 0.608 [0.481-1.08] | 1.13 [0.977-1.55] | 0.633 [0.521-1.67] | 1 [1-1] / 1 [1-1] | 10 |
+
+![Time to a new leader vs one-way delay, no loss, median and min-max of 10 trials, for killed and isolated leaders with default and tuned timeouts, 3 and 5 members](../results/partd/plots/election_vs_delay.png)
+
+![Median time to a new leader over the delay x loss grid, leader killed, one colour scale for all panels](../results/partd/plots/election_heatmap_kill.png)
+
+What this shows:
+
+- **The election timeout sets the floor.** With no added delay or loss, a killed leader is replaced in 1.05 s [0.91–1.74] with 3 members and 1.12 s [0.967–1.37] with 5, using the defaults. The tuned pair roughly halves that: 0.66 s [0.523–0.764] and 0.498 s [0.439–0.588]. No trial beat one election timeout by more than one heartbeat interval (default minimum 0.91 s, tuned 0.439 s): a follower's timer starts from the last heartbeat it got, which can be up to one interval before the fault.
+- **Isolating the leader looks like killing it** to the rest of the cluster: 1.14 s vs 1.05 s (3 members, defaults, no delay). Either way the old leader can't vote.
+- **With 5 members, delay and loss add modestly.** At 100 ms one-way: 1.53 s [1.4–3.62] with the defaults, 1.02 s [0.933–2.76] tuned. At 10% loss and no delay: 1.31 s and 0.608 s.
+- **With 3 members, the tuned pair backfires at 100 ms.** A killed leader took 2.31 s [0.97–4.35] tuned against 1.85 s [1.56–5.13] with the defaults, and the median tuned trial needed 4 elections against 1. With two survivors, each needs the other's vote. A survivor becomes a candidate one round trip (200 ms) after its timer fires, once its pre-vote is granted. If the other survivor's timer fires less than one one-way delay (100 ms) later, its own pre-vote request arrives before the first has become a candidate and is granted too. Both then become candidates in the same term, each votes for itself, and the round is lost; each lost round costs another randomized timeout. etcd draws a member's election timeout from [timeout, 2 × timeout) in heartbeat ticks (`raft/raft.go`, line 1713 at v3.5.35), so the tuned pair picks one of ten values from 500 to 950 ms, against 1,000 to 1,900 ms for the defaults. In one trial (3 members, tuned, 100 ms, repetition 1 of [run 42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571)) the two survivors became candidates 94–95 ms apart in each of the first two rounds and only the fifth election produced a leader, at 2.83 s. Across the whole grid (16 delay × loss cells, killed and isolated), this is the only one of the 32 three-member cells where the tuned median is slower. With 5 members the tuned median is also slower in exactly one cell: killed leader, 100 ms and 10% loss, 2.26 s against 1.82 s (`election_summary.csv`; runs [42452414571](https://github.com/zbs-ops/research-network-lab/actions/runs/42452414571), [42454644849](https://github.com/zbs-ops/research-network-lab/actions/runs/42454644849)). Why 5 members suffer less from split votes wasn't measured.
+- **One 3-member trial at only 10 ms needed 25 elections (9.08 s).** That's the largest value in the 10 ms tuned cell, and it isn't explained; see open question 1.
