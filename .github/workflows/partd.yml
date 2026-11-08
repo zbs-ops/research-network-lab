@@ -26,6 +26,12 @@ on:
       experiments:
         description: which experiments to run (election, partition or both)
         default: "election,partition"
+      partition_windows:
+        description: partition lengths, seconds (comma list)
+        default: "10"
+      partition_faults:
+        description: partition variants (leader-minority, leader-majority)
+        default: "leader-minority,leader-majority"
 
 env:
   ETCD_VERSION: v3.5.35
@@ -91,7 +97,8 @@ jobs:
           if [ "${{ matrix.exp }}" = election ]; then
             set -- --delays "${{ inputs.delays }}" --losses "${{ inputs.losses }}" --grid "${{ inputs.grid }}" --reps "${{ inputs.reps }}"
           else
-            set -- --delays "${{ inputs.partition_delays }}" --losses 0 --reps "${{ inputs.partition_reps }}" --window 10 --post 6
+            set -- --delays "${{ inputs.partition_delays }}" --losses 0 --reps "${{ inputs.partition_reps }}" \
+              --windows "${{ inputs.partition_windows }}" --post 6 --faults "${{ inputs.partition_faults }}"
           fi
           sudo python3 partd/raft_faults.py --exp ${{ matrix.exp }} --members ${{ matrix.members }} \
             --timeouts ${{ matrix.timeouts }} --faults "${{ matrix.faults }}" --out "$OUT/$JOB" "$@"
