@@ -20,6 +20,12 @@ on:
       partition_reps:
         description: repetitions per partition variant
         default: "10"
+      partition_delays:
+        description: one-way delay between members for the partition runs, ms (comma list)
+        default: "0"
+      experiments:
+        description: which experiments to run (election, partition or both)
+        default: "election,partition"
 
 env:
   ETCD_VERSION: v3.5.35
@@ -57,8 +63,13 @@ jobs:
       OUT: /tmp/partd
       JOB: ${{ matrix.exp }}-n${{ matrix.members }}-${{ matrix.timeouts }}-${{ matrix.exp == 'partition' && 'split' || matrix.faults }}
     steps:
+      - name: Skip if this experiment wasn't asked for
+        id: want
+        run: echo "run=${{ contains(inputs.experiments, matrix.exp) }}" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
+        if: steps.want.outputs.run == 'true'
       - name: Install etcd (official release, checksum verified)
+        if: steps.want.outputs.run == 'true'
         run: |
           cd "$RUNNER_TEMP"
           base=https://github.com/etcd-io/etcd/releases/download/$ETCD_VERSION
@@ -68,34 +79,36 @@ jobs:
           tar xzf "etcd-$ETCD_VERSION-linux-amd64.tar.gz"
           sudo install -m 755 "etcd-$ETCD_VERSION-linux-amd64/etcd" "etcd-$ETCD_VERSION-linux-amd64/etcdctl" /usr/local/bin/
       - name: Check the runner
+        if: steps.want.outputs.run == 'true'
         run: |
           mkdir -p "$OUT/$JOB"
           sh scripts/check_partd.sh /usr/local/bin 2>&1 | tee "$OUT/$JOB/env-check.txt"
           exit "${PIPESTATUS[0]}"
         shell: bash
       - name: Run
+        if: steps.want.outputs.run == 'true'
         run: |
           if [ "${{ matrix.exp }}" = election ]; then
             set -- --delays "${{ inputs.delays }}" --losses "${{ inputs.losses }}" --grid "${{ inputs.grid }}" --reps "${{ inputs.reps }}"
           else
-            set -- --delays 0 --losses 0 --reps "${{ inputs.partition_reps }}" --window 10 --post 6
+            set -- --delays "${{ inputs.partition_delays }}" --losses 0 --reps "${{ inputs.partition_reps }}" --window 10 --post 6
           fi
           sudo python3 partd/raft_faults.py --exp ${{ matrix.exp }} --members ${{ matrix.members }} \
             --timeouts ${{ matrix.timeouts }} --faults "${{ matrix.faults }}" --out "$OUT/$JOB" "$@"
       - name: Separate the etcd logs from the results
-        if: always()
+        if: always() && steps.want.outputs.run == 'true'
         run: |
           sudo chown -R "$(id -u)" "$OUT"
           mkdir -p "$OUT-logs"
           [ -d "$OUT/$JOB/logs" ] && mv "$OUT/$JOB/logs" "$OUT-logs/$JOB" || true
           ls "$OUT/$JOB" | head; ls "$OUT/$JOB" | wc -l
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.want.outputs.run == 'true'
         with:
           name: partd-${{ env.JOB }}
           path: /tmp/partd
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.want.outputs.run == 'true'
         with:
           name: partd-logs-${{ env.JOB }}
           path: /tmp/partd-logs
